@@ -109,10 +109,18 @@ if [ -n "$SPACE_PATHS" ]; then
   done <<<"$SPACE_PATHS"
 fi
 
-# ----- Tier 2: plan slugs by name (with stopwords) -----
-# Push the per-file processing into Python for speed (single subprocess).
-# Stopwords filter out generic project nouns so they don't count toward
-# the 2-token consecutive match.
+# ----- Tier 2: plan slugs by name -----
+# Two passes in one Python subprocess:
+#
+# Pass A (prefix sweep): if any contiguous multi-word prefix of the slug
+# (2+ tokens joined by spaces) appears verbatim in the prompt, include ALL
+# files sharing that prefix. "command center" in prompt → every
+# command-center-*.md file, regardless of what comes after.
+#
+# Pass B (any-token match): if 2+ non-stopword slug tokens each appear
+# anywhere in the prompt (order-independent), count as a match. This replaces
+# the old adjacent-pair requirement that missed files like command-center-phase2
+# when the prompt said "command center" but not "center phase".
 if [ -d "$PLANS_DIR" ]; then
   TIER2_MATCHES="$(PROMPT_LC="$PROMPT_LC" PLANS_DIR="$PLANS_DIR" python3 -c '
 import os, re, sys
@@ -123,46 +131,62 @@ stopwords = {
     "file", "weekly", "daily", "project", "client",
     "the", "a", "an", "and", "or", "for", "with", "from",
 }
-matches = []
+
+# Collect all .md files first so we can do the prefix-group sweep.
+all_files = []
 try:
     for root, dirs, files in os.walk(plans_dir):
-        # Cap recursion at depth 2 (PLANS_DIR + one subdir)
         depth = root[len(plans_dir):].count(os.sep)
         if depth > 1:
             dirs[:] = []
             continue
         for f in files:
-            if not f.endswith(".md"):
-                continue
-            base_lc = f[:-3].lower()
-            tokens = base_lc.split("-")
-            # Need at least 2 non-stopword content tokens of length >= 3 in
-            # the slug, otherwise too generic to match.
-            content_count = sum(1 for t in tokens if t not in stopwords and len(t) >= 3)
-            if content_count < 2:
-                continue
-            matched = False
-            # Check adjacent token pairs as they appear in the original slug.
-            # Skip pairs where both tokens are stopwords or short noise.
-            for i in range(len(tokens) - 1):
-                a, b = tokens[i], tokens[i+1]
-                if (a in stopwords or len(a) < 3) and (b in stopwords or len(b) < 3):
-                    continue
-                pair = a + " " + b
-                if re.search(r"\b" + re.escape(pair) + r"\b", prompt_lc):
-                    matched = True
-                    break
-            # Fallback: literal kebab slug appears verbatim in prompt.
-            if not matched and base_lc in prompt_lc:
-                matched = True
-            if matched:
-                matches.append(os.path.join(root, f))
-                if len(matches) >= 50:
-                    break
-        if len(matches) >= 50:
-            break
+            if f.endswith(".md"):
+                all_files.append(os.path.join(root, f))
 except Exception:
     pass
+
+# Pass A: build a set of prefixes (2+ tokens) found in the prompt.
+# Then flag every file whose slug starts with a matching prefix.
+prefix_matched = set()
+for fpath in all_files:
+    base_lc = os.path.basename(fpath)[:-3].lower()
+    tokens = base_lc.split("-")
+    for length in range(2, len(tokens) + 1):
+        prefix = " ".join(tokens[:length])
+        if re.search(r"\b" + re.escape(prefix) + r"\b", prompt_lc):
+            # Record the prefix so all siblings get picked up.
+            prefix_matched.add(prefix)
+
+# Collect all files matching any found prefix.
+matches = []
+seen = set()
+for fpath in all_files:
+    base_lc = os.path.basename(fpath)[:-3].lower()
+    tokens = base_lc.split("-")
+    for length in range(2, len(tokens) + 1):
+        prefix = " ".join(tokens[:length])
+        if prefix in prefix_matched and fpath not in seen:
+            matches.append(fpath)
+            seen.add(fpath)
+            break
+
+# Pass B: any-token match for files not already caught by Pass A.
+for fpath in all_files:
+    if fpath in seen:
+        continue
+    base_lc = os.path.basename(fpath)[:-3].lower()
+    tokens = base_lc.split("-")
+    content_tokens = [t for t in tokens if t not in stopwords and len(t) >= 3]
+    if len(content_tokens) < 2:
+        continue
+    hit_count = sum(1 for t in content_tokens if re.search(r"\b" + re.escape(t) + r"\b", prompt_lc))
+    if hit_count >= 2:
+        matches.append(fpath)
+        seen.add(fpath)
+    if len(matches) >= 50:
+        break
+
 print("\n".join(matches))
 ' 2>/dev/null)"
   if [ -n "$TIER2_MATCHES" ]; then
@@ -219,8 +243,10 @@ if [ "${#CANDIDATES[@]}" -gt 0 ]; then
   done < <(printf '%s\n' "${CANDIDATES[@]}" | awk 'NF && !seen[$0]++')
 fi
 
-# Cap candidates
+# Cap candidates -- warn rather than silently drop.
+DROPPED_COUNT=0
 if [ "${#DEDUPED[@]}" -gt "$MAX_CANDIDATES" ]; then
+  DROPPED_COUNT=$(( ${#DEDUPED[@]} - MAX_CANDIDATES ))
   DEDUPED=("${DEDUPED[@]:0:$MAX_CANDIDATES}")
 fi
 
@@ -229,23 +255,70 @@ if [ "${#DEDUPED[@]}" -eq 0 ] && [ "$AGENT_HIT" -eq 0 ] && [ "$PHASE_VERSION_HIT
   exit 0
 fi
 
+# Detect full-read triggers:
+# 1. Prompt contains the clear-prep sentinel (pasted handover)
+# 2. Prompt contains words meaning "read everything" and files were matched
+FULL_READ=0
+if printf '%s' "$PROMPT" | grep -q 'CLEAR_PREP_HANDOVER'; then
+  FULL_READ=1
+elif printf '%s' "$PROMPT_LC" | grep -qE '\b(all|everything|every file|every one|full context|don'\''t skip|do not skip)\b' && [ "${#DEDUPED[@]}" -gt 0 ]; then
+  FULL_READ=1
+fi
+
+# Size guard for Mode B: estimate total bytes before injecting.
+# If combined size exceeds 150KB, fall back to Mode A with a warning.
+MODE_B_SIZE_WARNING=0
+if [ "$FULL_READ" -eq 1 ] && [ "${#DEDUPED[@]}" -gt 0 ]; then
+  total_bytes=0
+  for c in "${DEDUPED[@]}"; do
+    fsize=$(stat -f%z "$c" 2>/dev/null || stat -c%s "$c" 2>/dev/null || echo 0)
+    total_bytes=$(( total_bytes + fsize ))
+  done
+  if [ "$total_bytes" -gt 153600 ]; then
+    FULL_READ=0
+    MODE_B_SIZE_WARNING=1
+  fi
+fi
+
 # Emit critical-instruction block.
 {
   echo "<critical-instruction>"
-  echo "The user's prompt references local material. Use the Read tool on each candidate source below before responding. Do not answer from briefings, summaries, or prior memory of these files. If a referenced file is not relevant, say so explicitly rather than skipping the Read."
-  echo ""
-  if [ "${#DEDUPED[@]}" -gt 0 ]; then
-    echo "Candidate sources:"
-    for c in "${DEDUPED[@]}"; do
-      echo "- $c"
-    done
+  if [ "$FULL_READ" -eq 1 ] && [ "${#DEDUPED[@]}" -gt 0 ]; then
+    echo "The user's prompt requires reading ALL of the following files in full. Their complete contents are included below. You must treat every word as read -- no summarizing, no skipping, no 'I read the relevant parts'. These are not candidates; they are required reading."
     echo ""
+    for c in "${DEDUPED[@]}"; do
+      echo "=== FILE: $c ==="
+      cat "$c" 2>/dev/null || echo "[unreadable]"
+      echo ""
+      echo "=== END: $c ==="
+      echo ""
+    done
+  else
+    echo "The user's prompt references local material. Use the Read tool on each source below before responding. Do not answer from briefings, summaries, or prior memory of these files. If you believe a file is not relevant, you must ask the user before skipping it -- do not make that call unilaterally."
+    echo ""
+    if [ "$MODE_B_SIZE_WARNING" -eq 1 ]; then
+      echo "WARNING: Matched files exceed 150KB combined. Full inline injection skipped to avoid context overflow. Read selectively but ask before skipping any file the user may consider relevant."
+      echo ""
+    fi
+    if [ "${#DEDUPED[@]}" -gt 0 ]; then
+      echo "Sources to read:"
+      for c in "${DEDUPED[@]}"; do
+        echo "- $c"
+      done
+      if [ "$DROPPED_COUNT" -gt 0 ]; then
+        echo ""
+        echo "WARNING: $DROPPED_COUNT additional matching file(s) were not listed due to the candidate cap. Tell the user this before responding so they can decide whether to raise the limit."
+      fi
+      echo ""
+    fi
   fi
   if [ "$AGENT_HIT" -eq 1 ]; then
     echo "The prompt references agent or dispatch output. Check ~/.claude/jobs/ for the most recent .md files and any agent results in this conversation before answering."
     echo ""
   fi
-  echo "If the user referenced something you cannot identify from this list, ask which file they mean. Do not guess."
+  if [ "$FULL_READ" -eq 0 ]; then
+    echo "If the user referenced something you cannot identify from this list, ask which file they mean. Do not guess."
+  fi
   echo "</critical-instruction>"
 } 2>/dev/null
 
