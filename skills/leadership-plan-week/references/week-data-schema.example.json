@@ -1,0 +1,399 @@
+{
+  "weekLabel": "Apr 27 - May 3, 2026",
+  "weekStart": "2026-04-27",
+  "createdAt": "2026-04-27T19:30:00-05:00",
+  "version": 1,
+  "mode": "sunday-full",
+  "quarterlyWinsRef": "2026-Q2",
+  "winConditions": {
+    "client": "Cole GTM running without me. AND back online. Dr. Adam press kit done.",
+    "bizdev": "Cold email live. LinkedIn outreach live. TL posts shipped. Pinx AI seminar proposal done.",
+    "team": "EI website finished. Shaheer + Kaelene unblocked. I am no longer the bottleneck."
+  },
+  "frame": [
+    "Mornings 07-11 = deep work. No email. Slack mentions only.",
+    "Email sweeps: 11:00, 15:00, 16:30",
+    "Mon: no external meetings except cofounders",
+    "Wed: quiet day, deep focus",
+    "Fri: half day, hard stop noon, last hour = team letter",
+    "Sun: 4hr quiet block (pre-mortem + strategic)"
+  ],
+  "threads": [
+    {
+      "client": "Zenith",
+      "movesThisWeek": ["GTM brief execution (HTML output)", "Cole reply", "Jay+Neeraj sync", "TL posts shipped"],
+      "priority": "P1"
+    },
+    {
+      "client": "Dr. Adam",
+      "movesThisWeek": ["Phase 4 message matrix", "Phase 5 one-pager", "Press kit handoff to Abigail"],
+      "priority": "P1"
+    },
+    {
+      "client": "AND",
+      "movesThisWeek": ["Contract close", "Loom for Josh"],
+      "priority": "P1"
+    },
+    {
+      "client": "Synchrony",
+      "movesThisWeek": ["Pilot PR + Vibe.co pixel verify with Fida"],
+      "priority": "P1"
+    },
+    {
+      "client": "Earned Impact Internal",
+      "movesThisWeek": ["EI website finalization", "Cofounders sync", "Friday letter to team", "Pre-mortem for May 4"],
+      "priority": "P1"
+    },
+    {
+      "client": "Pinx",
+      "movesThisWeek": ["AI seminar proposal with Kaelene"],
+      "priority": "P2"
+    },
+    {
+      "client": "Kamari",
+      "movesThisWeek": ["Entity close email", "Mon prep"],
+      "priority": "P2"
+    },
+    {
+      "client": "CPI",
+      "movesThisWeek": ["Go/no-go decision (program book deadline Wed)"],
+      "priority": "P1"
+    }
+  ],
+  "days": [
+    {
+      "id": "sun-apr27",
+      "label": "SUN Apr 27",
+      "tags": ["today"],
+      "blocks": [
+        {
+          "id": "blk-001",
+          "time": "07:00-08:30",
+          "label": "EI website unblock",
+          "client": "Earned Impact Internal",
+          "priority": "P1",
+          "notes": "Anything Shaheer/Kaelene need from me"
+        },
+        {
+          "id": "blk-002",
+          "time": "08:30-09:30",
+          "label": "Comms sweep",
+          "client": "Earned Impact Internal",
+          "priority": "P2",
+          "notes": "Cole reply, Loom for Josh, Kaelene reimbursements, Jay+Neeraj sync, Thumbtack triage"
+        },
+        {
+          "id": "blk-003",
+          "time": "09:30-10:00",
+          "label": "Dr. Adam week plan",
+          "client": "Dr. Adam",
+          "priority": "P2",
+          "notes": "Coordinate with John + Sophia. Hand press kit to Abigail."
+        },
+        {
+          "id": "blk-004",
+          "time": "10:00-11:00",
+          "label": "Lexie sync + Kamari email + Mon prep",
+          "client": "Kamari",
+          "priority": "P2",
+          "notes": "Sync first, email after."
+        }
+      ]
+    },
+    {
+      "id": "mon-apr28",
+      "label": "MON Apr 28",
+      "tags": ["no-meetings"],
+      "blocks": [
+        {
+          "id": "blk-101",
+          "time": "07:00-10:00",
+          "label": "Zenith GTM brief execution",
+          "client": "Zenith",
+          "priority": "P1",
+          "notes": "HTML output"
+        },
+        {
+          "id": "blk-102",
+          "time": "10:00-11:00",
+          "label": "Cofounders / buffer",
+          "client": "Earned Impact Internal",
+          "priority": "P2",
+          "notes": ""
+        },
+        {
+          "id": "blk-103",
+          "time": "11:00-12:00",
+          "label": "Comms sweep #1",
+          "client": "Earned Impact Internal",
+          "priority": "P3",
+          "notes": ""
+        },
+        {
+          "id": "blk-104",
+          "time": "13:00-15:00",
+          "label": "Dr. Adam Phase 4 message matrix",
+          "client": "Dr. Adam",
+          "priority": "P2",
+          "notes": ""
+        },
+        {
+          "id": "blk-105",
+          "time": "15:00-15:30",
+          "label": "Comms sweep #2",
+          "client": "Earned Impact Internal",
+          "priority": "P3",
+          "notes": ""
+        },
+        {
+          "id": "blk-106",
+          "time": "15:30-17:00",
+          "label": "Admin: business card move, OA top 5 of 21",
+          "client": "Earned Impact Internal",
+          "priority": "P3",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "tue-apr29",
+      "label": "TUE Apr 29",
+      "tags": [],
+      "blocks": [
+        {
+          "id": "blk-201",
+          "time": "07:00-10:00",
+          "label": "BizDev: AND contract / Kamari entity / TL posts / Adam team",
+          "client": "Earned Impact Internal",
+          "priority": "P2",
+          "notes": "Multi-thread"
+        },
+        {
+          "id": "blk-202",
+          "time": "10:00-11:00",
+          "label": "Email + buffer",
+          "client": "Earned Impact Internal",
+          "priority": "P3",
+          "notes": ""
+        },
+        {
+          "id": "blk-203",
+          "time": "13:00-15:00",
+          "label": "Dr. Adam Phase 5 one-pager",
+          "client": "Dr. Adam",
+          "priority": "P2",
+          "notes": ""
+        },
+        {
+          "id": "blk-204",
+          "time": "15:00-16:00",
+          "label": "Kaelene: cold outbound handoff + Pinx AI groundwork",
+          "client": "Pinx",
+          "priority": "P2",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "wed-apr30",
+      "label": "WED Apr 30",
+      "tags": ["quiet-day"],
+      "blocks": [
+        {
+          "id": "blk-301",
+          "time": "07:00-12:00",
+          "label": "EI website finalization",
+          "client": "Earned Impact Internal",
+          "priority": "P1",
+          "notes": "5hr deep block"
+        },
+        {
+          "id": "blk-302",
+          "time": "13:00-13:30",
+          "label": "CPI go/no-go",
+          "client": "CPI",
+          "priority": "P1",
+          "notes": "Written decision to Lori + Diane. Program book deadline today."
+        },
+        {
+          "id": "blk-303",
+          "time": "13:30-16:00",
+          "label": "AI workshop planning + outbound sales motion",
+          "client": "Earned Impact Internal",
+          "priority": "P2",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "thu-may1",
+      "label": "THU May 1",
+      "tags": [],
+      "blocks": [
+        {
+          "id": "blk-401",
+          "time": "07:00-10:00",
+          "label": "BizDev: proposals, follow-ups, pipeline",
+          "client": "Earned Impact Internal",
+          "priority": "P2",
+          "notes": ""
+        },
+        {
+          "id": "blk-402",
+          "time": "13:00-15:00",
+          "label": "Synchrony pilot PR + Vibe.co pixel verify",
+          "client": "Synchrony",
+          "priority": "P1",
+          "notes": "with Fida"
+        },
+        {
+          "id": "blk-403",
+          "time": "15:00-16:00",
+          "label": "Pinx AI seminar proposal with Kaelene",
+          "client": "Pinx",
+          "priority": "P2",
+          "notes": "New service line"
+        }
+      ]
+    },
+    {
+      "id": "fri-may2",
+      "label": "FRI May 2",
+      "tags": ["half-day"],
+      "blocks": [
+        {
+          "id": "blk-501",
+          "time": "07:00-09:00",
+          "label": "Cleanup overhanging items",
+          "client": "Earned Impact Internal",
+          "priority": "P3",
+          "notes": ""
+        },
+        {
+          "id": "blk-502",
+          "time": "09:00-10:00",
+          "label": "Email + Slack",
+          "client": "Earned Impact Internal",
+          "priority": "P3",
+          "notes": ""
+        },
+        {
+          "id": "blk-503",
+          "time": "10:00-11:00",
+          "label": "Friday letter to team",
+          "client": "Earned Impact Internal",
+          "priority": "P2",
+          "notes": ""
+        },
+        {
+          "id": "blk-504",
+          "time": "11:00-12:00",
+          "label": "Weekly review + next-week pre-mortem prep",
+          "client": "Earned Impact Internal",
+          "priority": "P2",
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "id": "sat-may3",
+      "label": "SAT May 3",
+      "tags": ["strategic"],
+      "blocks": [
+        {
+          "id": "blk-601",
+          "time": "4hr block",
+          "label": "Pre-mortem for May 4 week + strategic quiet work",
+          "client": "Earned Impact Internal",
+          "priority": "P2",
+          "notes": "Run /plan-week here"
+        }
+      ]
+    }
+  ],
+  "taskPool": [
+    {
+      "id": "t1",
+      "label": "Get back to Cole",
+      "client": "Zenith",
+      "priority": "P1"
+    },
+    {
+      "id": "t2",
+      "label": "Loom for Josh",
+      "client": "AND",
+      "priority": "P2"
+    },
+    {
+      "id": "t3",
+      "label": "Propose AI training to Pinky",
+      "client": "Pinx",
+      "priority": "P2"
+    },
+    {
+      "id": "t4",
+      "label": "Follow up Thumbtack leads",
+      "client": "Earned Impact Internal",
+      "priority": "P2"
+    },
+    {
+      "id": "t5",
+      "label": "Submit reimbursements to Kaelene",
+      "client": "Earned Impact Internal",
+      "priority": "P3"
+    },
+    {
+      "id": "t6",
+      "label": "Follow up past-due invoice",
+      "client": "Earned Impact Internal",
+      "priority": "P1"
+    },
+    {
+      "id": "t7",
+      "label": "Send Dr. Pham Thumbtack review link",
+      "client": "Earned Impact Internal",
+      "priority": "P3"
+    },
+    {
+      "id": "t8",
+      "label": "Jay + Neeraj sync",
+      "client": "Zenith",
+      "priority": "P2"
+    }
+  ],
+  "delegations": [
+    {
+      "owner": "Kaelene",
+      "client": "Earned Impact Internal",
+      "task": "Cold outbound execution. LinkedIn manual. Pinx AI co-build.",
+      "status": "Waiting",
+      "lastTouchedAt": "2026-04-25T14:00:00-05:00"
+    },
+    {
+      "owner": "Abigail",
+      "client": "Dr. Adam",
+      "task": "DDK cleanup. Dr. Adam press kit completion.",
+      "status": "Assigned",
+      "lastTouchedAt": "2026-04-26T10:00:00-05:00"
+    },
+    {
+      "owner": "Fida",
+      "client": "Synchrony",
+      "task": "Vibe.co pixel removal (urgent).",
+      "status": "Waiting",
+      "lastTouchedAt": "2026-04-24T09:00:00-05:00"
+    },
+    {
+      "owner": "Damon only",
+      "client": "Earned Impact Internal",
+      "task": "Letterdrop daily review (15 min, inside 11:00 sweep).",
+      "status": "Active",
+      "lastTouchedAt": "2026-04-27T08:00:00-05:00"
+    }
+  ],
+  "pushedOff": [
+    "EI Outbound infra (Prospeo, Vercel envs, Outreach UI test, contact exports, Instantly mental health campaign)",
+    "Yellowbrick ads",
+    "ICSW UG"
+  ]
+}

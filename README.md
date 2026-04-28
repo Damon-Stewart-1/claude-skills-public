@@ -4,7 +4,7 @@ A portable set of Claude Code hooks, skills, and commands. Drop them into your o
 
 ## What's here
 
-**hooks/** -- 16 shell scripts for PreToolUse/PostToolUse/UserPromptSubmit events.
+**hooks/** -- 18 shell scripts for PreToolUse/PostToolUse/UserPromptSubmit events.
 
 | Hook | Event | What it does |
 |------|-------|--------------|
@@ -22,7 +22,8 @@ A portable set of Claude Code hooks, skills, and commands. Drop them into your o
 | `plan-gotchas-check.sh` | PreToolUse(Write) | Reminds Claude to read gotchas before writing a plan |
 | `prettier-format.sh` | PostToolUse(Write/Edit) | Auto-formats JS/TS/CSS files after writes |
 | `block-writes-until-review-read.sh` | PreToolUse(Write/Edit) | Blocks implementation writes until a plan review is acknowledged |
-| `read-sources-before-responding.sh` | UserPromptSubmit | Detects plan/file references in prompts and injects a read reminder |
+| `read-sources-before-responding.sh` | UserPromptSubmit | Detects plan/file references in prompts; injects full file contents or a read-before-responding mandate. Mode B (triggered by "all"/"everything" or CLEAR_PREP_HANDOVER sentinel) cats file contents inline to remove Claude's ability to skip or skim. |
+| `ralph-timeout.sh` | Stop | Enforces iteration limits on autonomous loops. Kills the session if max turns exceeded. |
 | `git-pre-commit.sh` | (manual install) | Pre-commit hook that checks staged files for hardcoded secrets |
 
 See `hooks/hooks.json` for the full event/matcher config to paste into your `settings.json`.
@@ -32,12 +33,18 @@ See `hooks/hooks.json` for the full event/matcher config to paste into your `set
 | Skill | What it does |
 |-------|--------------|
 | `plan` | Interview-style planning. Asks targeted questions, writes a phased plan with verifiable completion promises to `~/.claude/plans/`. |
-| `dispatch` | Sends a task to a background Claude process. Handles permission tiers, model selection, job IDs, and output routing. |
-| `jobs` | Lists and inspects background dispatch jobs. |
+| `dispatch` | Sends a task to a background Claude process. Handles permission tiers, model selection, job IDs, output routing, and multi-LLM targets (Gemini, ChatGPT). |
+| `jobs` | Lists and inspects background dispatch jobs. Shows status, exit codes, and timed-out jobs. |
 | `plan-review` | Dispatches a Gemini or Opus review of a plan file. Outputs a structured critique with a risk rating. |
 | `preflight` | Runs sanity checks before a long autonomous session: context headroom, locked files, clear done criteria, iteration limit. |
 | `tool-suggest` | Scans installed plugins and skills, then recommends which ones apply to the current task. |
 | `captain-opus` | Frames the session as a senior PM with full authority to spawn agents and dispatch. Good opener for non-trivial sessions. |
+| `clear-prep` | Generates a self-contained session handover prompt for pasting into a cleared Claude Code instance. Includes decision log, file fingerprints, dispatch job state, and memory delta check. |
+| `chrome-headless` | Fetches rendered HTML from a public URL using Chrome headless. Lighter than Playwright, safe for dispatch. |
+| `fleet-execute` | Executes READY plans from a triage queue. Shows scored-ready plans, asks confirmation, then dispatches agents. |
+| `kb-ingest` | Walks through unprocessed KB raw files and ingests them one at a time into a local knowledge base. |
+| `leadership-plan-daily` | Morning daily planning interview. Surfaces today's scheduled blocks and walks through time-blocking conversationally. |
+| `leadership-plan-week` | Sunday weekly planning interview. Produces a WEEK_DATA JSON file with threads, day blocks, win conditions, delegations, and pushed-off items. |
 
 **references/** -- Plain markdown docs Claude reads during skill execution.
 
