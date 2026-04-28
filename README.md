@@ -37,7 +37,6 @@ See `hooks/hooks.json` for the full event/matcher config to paste into your `set
 | `plan-review` | Dispatches a Gemini or Opus review of a plan file. Outputs a structured critique with a risk rating. |
 | `preflight` | Runs sanity checks before a long autonomous session: context headroom, locked files, clear done criteria, iteration limit. |
 | `tool-suggest` | Scans installed plugins and skills, then recommends which ones apply to the current task. |
-| `fleet-execute` | Dispatches agents to execute plans that scored READY in a triage run. Requires `fleet-triage.sh` and `fleet-execute.sh` bin scripts (not included; see the skill's SKILL.md for the expected interface). |
 | `captain-opus` | Frames the session as a senior PM with full authority to spawn agents and dispatch. Good opener for non-trivial sessions. |
 
 **references/** -- Plain markdown docs Claude reads during skill execution.
@@ -72,7 +71,6 @@ To enable hooks, paste the relevant entries from `hooks/hooks.json` into the `ho
 ## Notes
 
 - Hook scripts must be executable: `chmod +x ~/.claude/plugins/claude-skills-public/hooks/*.sh`
-- The `fleet-execute` skill is a template. You need to build `~/bin/fleet-triage.sh` and `~/bin/fleet-execute.sh` to match your plan format. The SKILL.md explains the expected interface.
 - `plan` skill references `~/.claude/plans/` for output and `~/.claude/skills/plan/gotchas.md` for pitfall avoidance. Both paths are created on first use.
 - `dispatch` expects Claude Code CLI to be on your PATH as `claude`.
 
