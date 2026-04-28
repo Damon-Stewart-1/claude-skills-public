@@ -59,7 +59,15 @@ fi
 
 # Launch (caller backgrounds this script via & or run_in_background)
 unset CLAUDECODE
-eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# Re-initialize Homebrew so gtimeout (coreutils) is on PATH in background subshells.
+# Claude Code caches shell env at session start; subshells don't inherit it.
+for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  if [ -x "$brew_path" ]; then
+    eval "$("$brew_path" shellenv)"
+    break
+  fi
+done
 
 gtimeout "${TIMEOUT_SECS}" "${CMD[@]}" > "$LOG_FILE" 2>&1
 EXIT_CODE=$?

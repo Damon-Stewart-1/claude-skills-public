@@ -9,7 +9,7 @@ A portable set of Claude Code hooks, skills, and commands. Drop them into your o
 | Hook | Event | What it does |
 |------|-------|--------------|
 | `env-guard.sh` | PreToolUse(Bash) | Blocks Bash commands that would expose secrets in shell output |
-| `secrets-write-guard.sh` | PreToolUse(Write/Edit) | Blocks hardcoded API keys from being written to files |
+| `secrets-write-guard.sh` | PostToolUse(Write/Edit) | Detects hardcoded API keys after writes to non-.env files and blocks commit |
 | `secrets-env-gate.sh` | PreToolUse(Write) | Gates writes to `.env` files, prompts for 1Password assessment |
 | `no-em-dashes.sh` | PreToolUse(Write/Edit) | Blocks em dashes and en dashes in content files |
 | `no-ai-filler.sh` | PreToolUse(Write/Edit) | Blocks AI filler phrases ("certainly", "absolutely", etc.) |
@@ -71,8 +71,10 @@ To enable hooks, paste the relevant entries from `hooks/hooks.json` into the `ho
 ## Notes
 
 - Hook scripts must be executable: `chmod +x ~/.claude/plugins/claude-skills-public/hooks/*.sh`
-- `plan` skill references `~/.claude/plans/` for output and `~/.claude/skills/plan/gotchas.md` for pitfall avoidance. Both paths are created on first use.
-- `dispatch` expects Claude Code CLI to be on your PATH as `claude`.
+- `hooks/hooks.json` uses `${CLAUDE_PLUGIN_ROOT}` in command paths. Claude Code sets this env var automatically when loading a plugin -- it resolves to the plugin's root directory. You do not need to set it yourself.
+- `secrets-write-guard.sh` is intentionally PostToolUse. `.env` files are gated PreToolUse by `secrets-env-gate.sh`. The write-guard catches hardcoded secrets in all other file types after the write, before the session continues.
+- `plan` skill writes plans to `~/.claude/plans/` and reads `~/.claude/skills/plan/gotchas.md` for pitfall avoidance. Both paths are created on first use.
+- `dispatch` expects Claude Code CLI on your PATH as `claude`. The dispatch script handles Homebrew PATH initialization for background subshells automatically.
 
 ## Requirements
 
