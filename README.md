@@ -4,11 +4,11 @@ A portable set of Claude Code hooks, skills, and commands. Drop them into your o
 
 ## What's here
 
-**hooks/** -- 15 shell scripts for PreToolUse/PostToolUse/UserPromptSubmit events.
+**hooks/** -- 14 shell scripts for PreToolUse/PostToolUse/UserPromptSubmit events.
 
 | Hook | Event | What it does |
 |------|-------|--------------|
-| `env-guard.sh` | PreToolUse(Bash) | Blocks commands that would expose secrets in shell output |
+| `env-guard.sh` | PreToolUse(Bash) | Blocks Bash commands that would expose secrets in shell output |
 | `secrets-write-guard.sh` | PreToolUse(Write/Edit) | Blocks hardcoded API keys from being written to files |
 | `secrets-env-gate.sh` | PreToolUse(Write) | Gates writes to `.env` files, prompts for 1Password assessment |
 | `no-em-dashes.sh` | PreToolUse(Write/Edit) | Blocks em dashes and en dashes in content files |

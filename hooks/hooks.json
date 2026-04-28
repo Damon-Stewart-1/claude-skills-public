@@ -1,5 +1,5 @@
 {
-  "description": "Earned Impact team hooks for code quality, security, and brand compliance",
+  "description": "Hooks for code quality, security, and content compliance",
   "hooks": {
     "PreToolUse": [
       {
