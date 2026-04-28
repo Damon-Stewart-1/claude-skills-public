@@ -10,7 +10,7 @@ ti = data.get('tool_input', {})
 text = ti.get('new_string', '') or ti.get('content', '')
 if not text and 'edits' in ti:
     text = ' '.join(e.get('new_string', '') for e in ti.get('edits', []))
-patterns = ['Lorem ipsum', 'PLACEHOLDER', 'example\\.com', 'your-.*-here', 'FIXME']
+patterns = ['Lorem ipsum', 'PLACEHOLDER', 'example\\.com', r'your[-_].*[-_]here', 'FIXME']
 for p in patterns:
     m = re.search(p, text, re.IGNORECASE)
     if m:

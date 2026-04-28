@@ -4,7 +4,7 @@ A portable set of Claude Code hooks, skills, and commands. Drop them into your o
 
 ## What's here
 
-**hooks/** -- 14 shell scripts for PreToolUse/PostToolUse/UserPromptSubmit events.
+**hooks/** -- 16 shell scripts for PreToolUse/PostToolUse/UserPromptSubmit events.
 
 | Hook | Event | What it does |
 |------|-------|--------------|
@@ -48,25 +48,39 @@ See `hooks/hooks.json` for the full event/matcher config to paste into your `set
 
 ## Installation
 
-These are designed to load as a Claude Code plugin. The quickest path:
+### Option A: Direct plugin install (recommended)
 
 ```bash
 git clone https://github.com/Damon-Stewart-1/claude-skills-public.git ~/.claude/plugins/claude-skills-public
 ```
 
-Then add to `~/.claude/settings.json`:
+Add to `~/.claude/settings.json`:
 
 ```json
 {
-  "enabledPlugins": {
-    "claude-skills-public": true
+  "plugins": {
+    "claude-skills-public": {
+      "path": "~/.claude/plugins/claude-skills-public"
+    }
   }
 }
 ```
 
-Restart Claude Code. Skills are available immediately as `/plan`, `/dispatch`, etc.
+Make hooks executable:
 
-To enable hooks, paste the relevant entries from `hooks/hooks.json` into the `hooks` array in your `settings.json`.
+```bash
+chmod +x ~/.claude/plugins/claude-skills-public/hooks/*.sh
+```
+
+Restart Claude Code. Skills load as `/plan`, `/dispatch`, etc.
+
+### Option B: Cherry-pick individual pieces
+
+Copy any hook script into your own plugin's `hooks/` directory. Copy any skill folder into `~/.claude/skills/`. Nothing has dependencies outside its own directory except `dispatch`, which requires the `scripts/dispatch.sh` script bundled with it.
+
+### Hooks wiring
+
+To activate hooks, add entries from `hooks/hooks.json` to the `hooks` array in your `settings.json`. The `${CLAUDE_PLUGIN_ROOT}` variable in the command paths is set automatically by Claude Code at load time -- you do not set it manually.
 
 ## Notes
 
