@@ -1,57 +1,106 @@
 # claude-skills-public
 
-A portable set of Claude Code hooks, skills, and commands. Drop them into your own plugin and wire up the hooks you want.
+> Quality gates and workflow skills for Claude Code, built from production use.
+
+[![CI](https://github.com/Damon-Stewart-1/claude-skills-public/actions/workflows/ci.yml/badge.svg)](https://github.com/Damon-Stewart-1/claude-skills-public/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Hooks](https://img.shields.io/badge/hooks-16-blue)
+![Skills](https://img.shields.io/badge/skills-12-green)
+
+Sixteen hooks that block real mistakes (em dashes, hardcoded secrets, pushes to `main`, AI filler), twelve skills that turn long sessions into structured work (interview-style planning, dispatched background jobs, plan reviews, preflight, headless Chrome fetches, weekly and daily planning), and a small set of reference docs Claude reads during execution.
+
+## In 30 seconds
+
+```bash
+git clone https://github.com/Damon-Stewart-1/claude-skills-public.git ~/.claude/plugins/claude-skills-public
+chmod +x ~/.claude/plugins/claude-skills-public/hooks/*.sh
+```
+
+Add the plugin block to `~/.claude/settings.json` (see [Installation](#installation)), restart Claude Code, then:
+
+```
+/plan a small refactor
+```
+
+You get an interview-style planner that produces a phased markdown plan with verifiable completion promises. Open `~/.claude/plans/` to see it.
+
+For the smallest possible setup with two hooks and one skill: see [`examples/minimal-install/`](examples/minimal-install/).
+
+## Architecture
+
+```mermaid
+flowchart LR
+    User([You]) -->|prompt| CC[Claude Code]
+    CC -->|UserPromptSubmit| Hooks
+    CC -->|tool call| Hooks
+    Hooks{{Hooks<br/>block / warn / allow}} -->|allow| CC
+    CC -->|invokes| Skills
+    Skills -->|reads| References
+    Skills -->|writes| Output[plans/<br/>jobs/<br/>scratch]
+
+    subgraph Plugin
+      Hooks
+      Skills
+      References[(References)]
+    end
+```
+
+Hooks intercept tool calls before they happen. Skills are invoked by name with `/skill-name` and run multi-step workflows. References are markdown docs that skills load during execution.
 
 ## What's here
 
-**hooks/** -- 18 shell scripts for PreToolUse/PostToolUse/UserPromptSubmit events.
+### Hooks
+
+Sixteen shell scripts that hook into Claude Code's PreToolUse, PostToolUse, and UserPromptSubmit events.
 
 | Hook | Event | What it does |
 |------|-------|--------------|
 | `env-guard.sh` | PreToolUse(Bash) | Blocks Bash commands that would expose secrets in shell output |
-| `secrets-write-guard.sh` | PostToolUse(Write/Edit) | Detects hardcoded API keys after writes to non-.env files and blocks commit |
-| `secrets-env-gate.sh` | PreToolUse(Write) | Gates writes to `.env` files, prompts for 1Password assessment |
-| `no-em-dashes.sh` | PreToolUse(Write/Edit) | Blocks em dashes and en dashes in content files |
+| `secrets-write-guard.sh` | PostToolUse(Write/Edit) | Detects hardcoded API keys after writes to non-`.env` files |
+| `secrets-env-gate.sh` | PreToolUse(Write) | Gates writes to `.env` files, prompts for password-manager assessment |
+| `no-em-dashes.sh` | PreToolUse(Write/Edit) | Blocks em dashes and en dashes in content files (the AI tell) |
 | `no-ai-filler.sh` | PreToolUse(Write/Edit) | Blocks AI filler phrases ("certainly", "absolutely", etc.) |
-| `no-fake-urls.sh` | PreToolUse(Write/Edit) | Blocks placeholder URLs like `example.com` in source files |
+| `no-fake-urls.sh` | PreToolUse(Write/Edit) | Warns on placeholder URLs like `example.com` in source files |
 | `no-placeholders.sh` | PreToolUse(Write/Edit) | Blocks `TODO`, `PLACEHOLDER`, `YOUR_VALUE_HERE` in writes |
-| `protect-main.sh` | PreToolUse(Bash) | Blocks direct pushes to main/master |
+| `protect-main.sh` | PreToolUse(Bash) | Blocks direct pushes to `main`/`master` |
 | `no-curious.sh` | PreToolUse(Bash) | Blocks exploratory commands outside the task scope |
-| `figma-logo-qc.sh` | PreToolUse(Write/Edit) | Flags placeholder rectangles used in place of real logo components |
-| `plan-quality.sh` | PreToolUse(Write) | Checks plan files for completion promises before saving |
+| `figma-logo-qc.sh` | PreToolUse(Write/Edit) | Flags placeholder rectangles where real logo components belong |
+| `plan-quality.sh` | PreToolUse(Write) | Checks plan files have completion promises before saving |
 | `plan-gotchas-check.sh` | PreToolUse(Write) | Reminds Claude to read gotchas before writing a plan |
 | `prettier-format.sh` | PostToolUse(Write/Edit) | Auto-formats JS/TS/CSS files after writes |
 | `block-writes-until-review-read.sh` | PreToolUse(Write/Edit) | Blocks implementation writes until a plan review is acknowledged |
-| `read-sources-before-responding.sh` | UserPromptSubmit | Detects plan/file references in prompts; injects full file contents or a read-before-responding mandate. Mode B (triggered by "all"/"everything" or CLEAR_PREP_HANDOVER sentinel) cats file contents inline to remove Claude's ability to skip or skim. |
-| `ralph-timeout.sh` | Stop | Enforces iteration limits on autonomous loops. Kills the session if max turns exceeded. |
-| `git-pre-commit.sh` | (manual install) | Pre-commit hook that checks staged files for hardcoded secrets |
+| `read-sources-before-responding.sh` | UserPromptSubmit | Detects file references in prompts; injects full file contents or a read-before-responding mandate. Mode B (triggered by "all"/"everything" or CLEAR_PREP_HANDOVER sentinel) cats file contents inline so Claude cannot skip or skim. |
+| `git-pre-commit.sh` | (manual install) | Pre-commit hook that scans staged files for hardcoded secrets |
 
-See `hooks/hooks.json` for the full event/matcher config to paste into your `settings.json`.
+Wiring lives in `hooks/hooks.json`. Paste the matcher entries you want into your `settings.json`.
 
-**skills/** -- Invokable with `/skill-name` in any Claude Code session.
+### Skills
+
+Invokable with `/skill-name` in any Claude Code session.
 
 | Skill | What it does |
 |-------|--------------|
-| `plan` | Interview-style planning. Asks targeted questions, writes a phased plan with verifiable completion promises to `~/.claude/plans/`. |
+| `plan` | Interview-style planning. Asks targeted questions, writes a phased plan with completion promises to `~/.claude/plans/`. |
 | `dispatch` | Sends a task to a background Claude process. Handles permission tiers, model selection, job IDs, output routing, and multi-LLM targets (Gemini, ChatGPT). |
 | `jobs` | Lists and inspects background dispatch jobs. Shows status, exit codes, and timed-out jobs. |
 | `plan-review` | Dispatches a Gemini or Opus review of a plan file. Outputs a structured critique with a risk rating. |
-| `preflight` | Runs sanity checks before a long autonomous session: context headroom, locked files, clear done criteria, iteration limit. |
-| `tool-suggest` | Scans installed plugins and skills, then recommends which ones apply to the current task. |
-| `captain-opus` | Frames the session as a senior PM with full authority to spawn agents and dispatch. Good opener for non-trivial sessions. |
-| `clear-prep` | Generates a self-contained session handover prompt for pasting into a cleared Claude Code instance. Includes decision log, file fingerprints, dispatch job state, and memory delta check. |
+| `preflight` | Sanity checks before a long autonomous session: context headroom, locked files, completion criteria, iteration limit. |
+| `tool-suggest` | Scans installed plugins and skills, recommends which apply to the current task. |
+| `clear-prep` | Generates a self-contained session handover prompt for pasting into a cleared Claude Code instance. Includes decision log, file fingerprints, dispatch job state. |
 | `chrome-headless` | Fetches rendered HTML from a public URL using Chrome headless. Lighter than Playwright, safe for dispatch. |
 | `fleet-execute` | Executes READY plans from a triage queue. Shows scored-ready plans, asks confirmation, then dispatches agents. |
-| `kb-ingest` | Walks through unprocessed KB raw files and ingests them one at a time into a local knowledge base. |
+| `kb-ingest` | Walks through unprocessed knowledge-base raw files and ingests them one at a time. |
 | `leadership-plan-daily` | Morning daily planning interview. Surfaces today's scheduled blocks and walks through time-blocking conversationally. |
 | `leadership-plan-week` | Sunday weekly planning interview. Produces a WEEK_DATA JSON file with threads, day blocks, win conditions, delegations, and pushed-off items. |
 
-**references/** -- Plain markdown docs Claude reads during skill execution.
+### References
 
-- `gotchas.md` -- Planning pitfalls observed in real sessions
-- `plugin-creation.md` -- Correct plugin structure and manifest format
-- `ralph-usage.md` -- Iteration limits and safe defaults for autonomous loops
-- `security-checklist.md` -- Mandatory checks before commits, deploys, and middleware changes
+Markdown docs that skills read during execution.
+
+- `gotchas.md` (planning pitfalls observed in real sessions)
+- `plugin-creation.md` (correct plugin structure and manifest format)
+- `ralph-usage.md` (iteration limits and safe defaults for autonomous loops)
+- `security-checklist.md` (mandatory checks before commits, deploys, and middleware changes)
 
 ## Installation
 
@@ -59,6 +108,7 @@ See `hooks/hooks.json` for the full event/matcher config to paste into your `set
 
 ```bash
 git clone https://github.com/Damon-Stewart-1/claude-skills-public.git ~/.claude/plugins/claude-skills-public
+chmod +x ~/.claude/plugins/claude-skills-public/hooks/*.sh
 ```
 
 Add to `~/.claude/settings.json`:
@@ -73,32 +123,37 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-Make hooks executable:
-
-```bash
-chmod +x ~/.claude/plugins/claude-skills-public/hooks/*.sh
-```
-
 Restart Claude Code. Skills load as `/plan`, `/dispatch`, etc.
 
-### Option B: Cherry-pick individual pieces
+To activate hooks, copy the matcher entries from `hooks/hooks.json` into the `hooks` array of your `settings.json`. The `${CLAUDE_PLUGIN_ROOT}` variable in the command paths is set automatically by Claude Code at load time.
+
+### Option B: Cherry-pick
 
 Copy any hook script into your own plugin's `hooks/` directory. Copy any skill folder into `~/.claude/skills/`. Nothing has dependencies outside its own directory except `dispatch`, which requires the `scripts/dispatch.sh` script bundled with it.
 
-### Hooks wiring
-
-To activate hooks, add entries from `hooks/hooks.json` to the `hooks` array in your `settings.json`. The `${CLAUDE_PLUGIN_ROOT}` variable in the command paths is set automatically by Claude Code at load time -- you do not set it manually.
-
 ## Notes
 
-- Hook scripts must be executable: `chmod +x ~/.claude/plugins/claude-skills-public/hooks/*.sh`
-- `hooks/hooks.json` uses `${CLAUDE_PLUGIN_ROOT}` in command paths. Claude Code sets this env var automatically when loading a plugin -- it resolves to the plugin's root directory. You do not need to set it yourself.
-- `secrets-write-guard.sh` is intentionally PostToolUse. `.env` files are gated PreToolUse by `secrets-env-gate.sh`. The write-guard catches hardcoded secrets in all other file types after the write, before the session continues.
-- `plan` skill writes plans to `~/.claude/plans/` and reads `~/.claude/skills/plan/gotchas.md` for pitfall avoidance. Both paths are created on first use.
-- `dispatch` expects Claude Code CLI on your PATH as `claude`. The dispatch script handles Homebrew PATH initialization for background subshells automatically.
+- Hook scripts must be executable: `chmod +x hooks/*.sh`
+- `secrets-write-guard.sh` is intentionally PostToolUse. `.env` files are gated PreToolUse by `secrets-env-gate.sh`.
+- The `plan` skill writes to `~/.claude/plans/` and reads `~/.claude/skills/plan/gotchas.md`.
+- The `dispatch` skill expects the Claude Code CLI on your `PATH` as `claude` and handles Homebrew PATH initialization for background subshells.
 
 ## Requirements
 
 - Claude Code CLI
 - macOS or Linux (hooks use bash)
-- `prettier` on PATH (optional, for `prettier-format.sh`)
+- `python3` (used by hooks to parse JSON stdin)
+- `prettier` on `PATH` (optional, for `prettier-format.sh`)
+
+## Examples
+
+- [`examples/minimal-install/`](examples/minimal-install/): smallest viable setup
+- [`examples/custom-hook/`](examples/custom-hook/): how to write your own hook on top of this plugin
+
+## Security
+
+To report a security issue, email `security@earnedimpact.org`. See [SECURITY.md](SECURITY.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).
