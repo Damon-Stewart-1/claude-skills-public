@@ -1,0 +1,30 @@
+# Local plugin/state
+.claude/settings.local.json
+*.local.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and temp
+*.log
+*.tmp
+/tmp/
+
+# Test artifacts
+tests/output/
+tests/.cache/
+
+# Secrets (defense in depth; this repo should never have them)
+.env
+.env.*
+!.env.example
+secrets.json
+*.pem
+*.key
