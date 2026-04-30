@@ -16,7 +16,7 @@ If the conversation has fewer than ~3 substantive turns AND no files were mentio
 
 ## Step 1: Read MEMORY.md
 
-Read `~/.claude/projects/-Users-damon/memory/MEMORY.md`. Store its contents for the delta check in Step 6. If unreadable: skip the delta check and add a high-priority entry to `## Warnings`.
+Read `~/.claude/projects/-Users-REDACTED/memory/MEMORY.md`. Store its contents for the delta check in Step 6. If unreadable: skip the delta check and add a high-priority entry to `## Warnings`.
 
 ## Step 2: Session Analysis
 
