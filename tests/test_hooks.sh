@@ -62,6 +62,21 @@ hook_allows "no-ai-filler.sh" \
   && pass "no-ai-filler: allows normal content" \
   || fail "no-ai-filler: falsely intercepted normal content"
 
+hook_intercepts "no-ai-filler.sh" \
+  '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md","content":"The mechanism is simple: poll, then ack."}}' \
+  && pass "no-ai-filler: intercepts register tell in prose" \
+  || fail "no-ai-filler: should have intercepted register tell"
+
+hook_allows "no-ai-filler.sh" \
+  '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.py","content":"# The mechanism is X. By extension, Y.\ndef f(): pass"}}' \
+  && pass "no-ai-filler: allows register phrase in code file" \
+  || fail "no-ai-filler: should not flag register phrase in code"
+
+hook_intercepts "no-ai-filler.sh" \
+  '{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.md","content":"The framework dominates current practice. Most teams skip step three.\n\nThe pattern shows up across portfolios. Roughly 60 percent.\n\nThe distinction matters at scale. Small books absorb noise."}}' \
+  && pass "no-ai-filler: intercepts abstract-noun paragraph openers" \
+  || fail "no-ai-filler: should have intercepted abstract openers"
+
 # ---- protect-main.sh (PreToolUse Bash, reads tool_input.command, decision:block) ----
 
 hook_intercepts "protect-main.sh" \
