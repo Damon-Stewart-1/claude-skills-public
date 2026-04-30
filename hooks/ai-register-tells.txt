@@ -1,0 +1,86 @@
+# AI register tells: high-precision phrases that signal LLM-authored prose.
+# Distinct from marketing filler (ai-filler-blocklist.txt). These catch the
+# explanatory/academic register LLMs default to: abstract restatement,
+# meta-pointers, and "by extension" connective tissue.
+#
+# Lines starting with # are comments. Blank lines ignored. Case-insensitive
+# substring match.
+By extension,
+the mechanism is
+the structural alternative
+the structural problem
+the structural answer
+the structural shift
+the diagnostic is
+the through-line
+the through line is
+The takeaway is
+The key insight is
+The key question is
+The critical question is
+The underlying issue
+The underlying problem
+The deeper issue
+The real issue is
+the real question is
+the real problem is
+In essence,
+At its core,
+Fundamentally,
+Ultimately,
+More importantly,
+It's worth noting
+It is worth noting
+In other words,
+Put differently,
+To put it differently
+To put it simply
+To put it bluntly
+That said,
+Importantly,
+Notably,
+Crucially,
+Tellingly,
+Strikingly,
+Interestingly,
+Counterintuitively,
+The paradox is
+The tension is
+The challenge is
+The question becomes
+This raises the question
+This begs the question
+What's interesting is
+What's important is
+What's notable is
+What this means is
+What this tells us
+What we're seeing
+serves as a
+acts as a reminder
+speaks to the
+points to the broader
+reflects the broader
+not just X but Y
+not merely
+not simply
+isn't just about
+isn't merely
+goes beyond
+extends beyond
+on a deeper level
+at a deeper level
+at the heart of
+sits at the intersection
+operates at the intersection
+the intersection of
+a kind of
+something of a
+in a sense,
+in many ways
+in some sense
+to a large extent
+to a significant degree
+broadly speaking
+generally speaking
+roughly speaking
