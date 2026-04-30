@@ -6,7 +6,7 @@ user_invocable: true
 
 # clear-prep
 
-Generate a self-contained handover prompt for a cleared Claude Code instance. No logging, no Productive, no sync-context, no `git diff`. Pure relay.
+Generate a self-contained handover prompt for a cleared Claude Code instance. No logging, no `git diff`. Pure relay.
 
 ---
 
@@ -14,9 +14,9 @@ Generate a self-contained handover prompt for a cleared Claude Code instance. No
 
 If the conversation has fewer than ~3 substantive turns AND no files were mentioned/edited AND no commands were run, output: "No active session to relay. Describe the project or task first, then run /clear-prep." Stop. A planning-only or research-only session with substantive decisions IS viable.
 
-## Step 1: Read MEMORY.md
+## Step 1: Read Memory File
 
-Read `~/.claude/projects/-Users-damon/memory/MEMORY.md`. Store its contents for the delta check in Step 6. If unreadable: skip the delta check and add a high-priority entry to `## Warnings`.
+Read the user's auto-memory index file (typically `~/.claude/projects/<project-slug>/memory/MEMORY.md`). Store its contents for the delta check in Step 6. If unreadable: skip the delta check and add a high-priority entry to `## Warnings`.
 
 ## Step 2: Session Analysis
 
@@ -40,21 +40,35 @@ Filter to files modified within the last 2 hours (`stat -f %m` vs `date -v-2H +%
 
 ## Step 6: Memory Delta Check
 
-Compare session context against MEMORY.md from Step 1. Include anything that meets ALL criteria: falls into a concrete category (user preference, project constraint, architectural decision, deployment target, API credential location, team/people context, or non-obvious workflow), is NOT already in MEMORY.md, and would be useful weeks from now. If nothing qualifies, omit the section.
+Compare session context against the memory file from Step 1. Include anything that meets ALL criteria: falls into a concrete category (user preference, project constraint, architectural decision, deployment target, API credential location, team/people context, or non-obvious workflow), is NOT already in memory, and would be useful weeks from now. If nothing qualifies, omit the section.
 
-## Step 6b: Plugin Debrief
+## Step 6b: Plugin Debrief (optional)
 
-Scan this session for gaps in the plugin system. Look for three things only:
+If the user has a plugin or rules directory in their setup, scan this session for gaps. Look for three things only:
 1. A hook that should exist or a current hook that didn't catch something it should have
 2. A workflow that repeated enough to warrant a new skill or an addition to an existing one
-3. Something learned about a client that isn't in their agent `.md` file
+3. Something learned about a project or client that isn't in their config
 
-For each gap found, propose a specific diff: which file in `~/ei-claude-plugin/` (hooks/, skills/, agents/), what to add or change, and why. If nothing qualifies, say "No plugin gaps found." Do not propose CLAUDE.md edits or memory file writes here -- that's Step 6.
+For each gap found, propose a specific diff: which file, what to add or change, and why. If nothing qualifies, say "No plugin gaps found." Do not propose memory edits here, that's Step 6.
 
 ## Step 7: Sanitization Pass
 
-Read `references/section-rules.md` for the complete list of secret patterns to scan for. Replace any match with `[REDACTED -- see Keychain or passwords app]`. Never output a real secret.
+Read `references/section-rules.md` for the complete list of secret patterns to scan for. Replace any match with `[REDACTED, see Keychain or passwords app]`. Never output a real secret.
 
 ## Step 8: Assemble Output
 
 Read `references/handover-template.md` for the exact output structure. Do not ask for approval. Output a single fenced code block. Read `references/section-rules.md` for which sections are required vs. optional.
+
+## Step 9: Copy to Clipboard
+
+After outputting the fenced handover block, immediately copy its contents (the text inside the fences, not the fences themselves) to the macOS clipboard:
+
+```bash
+cat <<'CLEAR_PREP_EOF' | pbcopy
+<the full handover content here, exactly as it appeared in the fenced block>
+CLEAR_PREP_EOF
+```
+
+Use a heredoc with a unique sentinel (`CLEAR_PREP_EOF`) so embedded backticks, dollar signs, and quotes pass through untouched. Do not use `echo` or `printf` (they mangle special chars). After running, output one final line confirming: `Handover copied to clipboard. Paste with Cmd+V into the cleared instance.`
+
+If `pbcopy` fails (e.g., no display, headless), say so and skip silently rather than blocking. On Linux, substitute `xclip -selection clipboard` or `wl-copy`. On Windows/WSL, substitute `clip.exe`.
