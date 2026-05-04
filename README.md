@@ -5,9 +5,9 @@
 [![CI](https://github.com/Damon-Stewart-1/claude-skills-public/actions/workflows/ci.yml/badge.svg)](https://github.com/Damon-Stewart-1/claude-skills-public/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 ![Hooks](https://img.shields.io/badge/hooks-16-blue)
-![Skills](https://img.shields.io/badge/skills-12-green)
+![Skills](https://img.shields.io/badge/skills-13-green)
 
-Sixteen hooks that block real mistakes (em dashes, hardcoded secrets, pushes to `main`, AI filler), twelve skills that turn long sessions into structured work (interview-style planning, dispatched background jobs, plan reviews, preflight, headless Chrome fetches, weekly and daily planning), and a small set of reference docs Claude reads during execution.
+Sixteen hooks that block real mistakes (em dashes, hardcoded secrets, pushes to `main`, AI filler), thirteen skills that turn long sessions into structured work (interview-style planning, dispatched background jobs, plan reviews, multi-agent team spawning, preflight, headless Chrome fetches, weekly and daily planning), and a small set of reference docs Claude reads during execution.
 
 ## In 30 seconds
 
@@ -84,6 +84,7 @@ Invokable with `/skill-name` in any Claude Code session.
 | `dispatch` | Sends a task to a background Claude process. Handles permission tiers, model selection, job IDs, output routing, and multi-LLM targets (Gemini, ChatGPT). |
 | `jobs` | Lists and inspects background dispatch jobs. Shows status, exit codes, and timed-out jobs. |
 | `plan-review` | Dispatches a Gemini or Opus review of a plan file. Outputs a structured critique with a risk rating. |
+| `spawn-agent-team` | Coordinates 2 to 10 parallel agents (Sonnet, Haiku, Gemini) using structured templates (3/3/3/1, 2/2/1, 4/4+1+1). Includes failure recovery, file-write rules, and lead synthesis. |
 | `preflight` | Sanity checks before a long autonomous session: context headroom, locked files, completion criteria, iteration limit. |
 | `tool-suggest` | Scans installed plugins and skills, recommends which apply to the current task. |
 | `clear-prep` | Generates a self-contained session handover prompt for pasting into a cleared Claude Code instance. Includes decision log, file fingerprints, dispatch job state. |
