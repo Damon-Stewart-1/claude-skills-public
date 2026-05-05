@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # dispatch.sh - Background Claude task runner
 #
-# Usage: dispatch.sh <JOB_ID> <PROMPT_FILE> <TOOLS> <MAX_TURNS> <TIMEOUT_SECS> [MODEL] [ADD_DIR]
+# Usage: dispatch.sh <JOB_ID> <PROMPT_FILE> <TOOLS> <TIMEOUT_SECS> [MODEL] [ADD_DIR]
 #
 # Arguments:
 #   JOB_ID        - Job identifier (e.g., job-20260305-143022)
 #   PROMPT_FILE   - Path to file containing the full task prompt
 #   TOOLS         - Quoted tool list for --allowedTools
-#   MAX_TURNS     - Maximum conversation turns
 #   TIMEOUT_SECS  - Timeout in seconds (600 simple, 1800 medium, 3600 complex)
 #   MODEL         - Optional: opus|sonnet|haiku (default: opus)
 #   ADD_DIR       - Optional: additional directory to add via --add-dir
 #
+# Note: --max-turns was removed in Claude Code 2.1. Timeout is now the circuit breaker.
 # Why unset CLAUDECODE: prevents "nested Claude" errors when spawning from inside Claude Code.
 # Why eval brew shellenv: Claude Code caches shell env at session start; gtimeout (coreutils)
 # may not be on PATH without reinitializing Homebrew.
@@ -21,10 +21,9 @@ set -euo pipefail
 JOB_ID="${1:?Missing JOB_ID}"
 PROMPT_FILE="${2:?Missing PROMPT_FILE}"
 TOOLS="${3:?Missing TOOLS}"
-MAX_TURNS="${4:?Missing MAX_TURNS}"
-TIMEOUT_SECS="${5:-1800}"
-MODEL="${6:-}"
-ADD_DIR="${7:-}"
+TIMEOUT_SECS="${4:-1800}"
+MODEL="${5:-}"
+ADD_DIR="${6:-}"
 
 TMP_OUTPUT="/tmp/${JOB_ID}.md"
 FINAL_OUTPUT="$HOME/.claude/jobs/${JOB_ID}.md"
@@ -40,13 +39,13 @@ model: ${MODEL:-opus}
 started: $(date '+%Y-%m-%d %H:%M:%S')
 output: ${FINAL_OUTPUT}
 tools: ${TOOLS}
-max_turns: ${MAX_TURNS}
+timeout_secs: ${TIMEOUT_SECS}
 META
 
 PROMPT="$(cat "$PROMPT_FILE")"
 
 # Build claude command
-CMD=(claude -p "$PROMPT" --allowedTools "$TOOLS" --max-turns "$MAX_TURNS" --output-format json)
+CMD=(claude -p "$PROMPT" --allowedTools "$TOOLS" --output-format json)
 CMD+=(--append-system-prompt "Write your final output to ${TMP_OUTPUT}. Be thorough but concise.")
 CMD+=(--no-session-persistence)
 
@@ -57,11 +56,8 @@ if [ -n "$ADD_DIR" ]; then
   CMD+=(--add-dir "$ADD_DIR")
 fi
 
-# Launch (caller backgrounds this script via & or run_in_background)
-unset CLAUDECODE
-
 # Re-initialize Homebrew so gtimeout (coreutils) is on PATH in background subshells.
-# Claude Code caches shell env at session start; subshells don't inherit it.
+unset CLAUDECODE
 for brew_path in /opt/homebrew/bin/brew /usr/local/bin/brew; do
   if [ -x "$brew_path" ]; then
     eval "$("$brew_path" shellenv)"
