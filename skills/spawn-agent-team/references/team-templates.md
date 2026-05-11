@@ -2,7 +2,7 @@
 
 Three canonical team compositions, each with role definitions, model assignments, sequencing, expected wall time, and a copy-paste prompt skeleton. Pick the template that matches the task, then customize agent prompts for the specific question.
 
-For all templates: capture the run-dir before spawning by running `bash ~/ei-claude-plugin/skills/spawn-agent-team/scripts/setup-run-dir.sh <task-slug>`. The script prints the absolute run-dir path on stdout. Substitute it everywhere `{RUN_DIR}` appears below.
+For all templates: capture the run-dir before spawning by running `bash "${CLAUDE_PLUGIN_ROOT}/skills/spawn-agent-team/scripts/setup-run-dir.sh" <task-slug>`. The script prints the absolute run-dir path on stdout. Substitute it everywhere `{RUN_DIR}` appears below.
 
 ## Template selection at a glance
 

@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>spawn-agent-team -- examples</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap");
+
+      :root {
+        --ivory: #f0f0f0;
+        --obsidian: #131315;
+        --pink: #ff70db;
+        --pink-soft: #ffb7ed;
+        --orange: #f35f36;
+        --ocean: #2079a0;
+        --sky: #afd7e9;
+        --fog: #909da3;
+        --storm: #3f5863;
+        --surface: #1a1a1c;
+        --surface-2: #222226;
+        --border: rgba(240, 240, 240, 0.08);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--obsidian);
+        color: var(--ivory);
+        font-family: "Poppins", sans-serif;
+        font-size: 15px;
+        line-height: 1.65;
+      }
+
+      /* ---- Masthead ---- */
+      .masthead {
+        border-bottom: 1px solid var(--border);
+        padding: 64px 48px 56px;
+      }
+
+      .masthead-inner {
+        max-width: 960px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 48px;
+        align-items: start;
+      }
+
+      .eyebrow {
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--orange);
+        margin-bottom: 16px;
+      }
+
+      h1 {
+        font-family: "DM Serif Display", serif;
+        font-size: clamp(28px, 4vw, 42px);
+        font-weight: 400;
+        line-height: 1.15;
+        color: var(--ivory);
+        margin-bottom: 20px;
+      }
+
+      h1 em {
+        color: var(--pink);
+        font-style: italic;
+      }
+
+      .intro {
+        color: var(--fog);
+        font-size: 16px;
+        line-height: 1.7;
+        max-width: 560px;
+        margin-bottom: 32px;
+      }
+
+      .intro strong {
+        color: var(--ivory);
+        font-weight: 500;
+      }
+
+      /* quick-stats row */
+      .stats {
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+      }
+
+      .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .stat-n {
+        font-family: "DM Serif Display", serif;
+        font-size: 28px;
+        color: var(--ivory);
+      }
+
+      .stat-l {
+        font-family: "Roboto Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--fog);
+      }
+
+      /* hero diagram -- md vs html panes */
+      .hero-fig {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        flex-shrink: 0;
+      }
+
+      .pane {
+        width: 120px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .pane-label {
+        font-family: "Roboto Mono", monospace;
+        font-size: 10px;
+        color: var(--fog);
+        margin-bottom: 4px;
+      }
+
+      .pane.html .pane-label {
+        color: var(--pink);
+      }
+
+      .pl {
+        height: 5px;
+        background: var(--border);
+        border-radius: 2px;
+      }
+      .pl.w90 {
+        width: 90%;
+      }
+      .pl.w75 {
+        width: 75%;
+      }
+      .pl.w60 {
+        width: 60%;
+      }
+      .pl.w50 {
+        width: 50%;
+      }
+      .pl.w82 {
+        width: 82%;
+      }
+
+      /* html pane has mini card */
+      .mini-card {
+        background: rgba(255, 112, 219, 0.08);
+        border: 1px solid rgba(255, 112, 219, 0.2);
+        border-radius: 4px;
+        padding: 6px 8px;
+        margin: 2px 0;
+      }
+
+      .mini-bar-wrap {
+        margin-top: 4px;
+      }
+      .mini-bar {
+        height: 3px;
+        border-radius: 2px;
+        background: var(--pink);
+        margin-top: 3px;
+      }
+      .mini-bar.b2 {
+        width: 55%;
+        background: var(--ocean);
+      }
+      .mini-bar.b3 {
+        width: 25%;
+        background: var(--storm);
+      }
+
+      /* ---- Content ---- */
+      .content {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 56px 48px;
+      }
+
+      .section-label {
+        font-family: "Roboto Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--pink);
+        margin-bottom: 12px;
+      }
+
+      h2 {
+        font-family: "DM Serif Display", serif;
+        font-size: 22px;
+        font-weight: 400;
+        color: var(--ivory);
+        margin-bottom: 24px;
+      }
+
+      /* ---- Cards ---- */
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 56px;
+      }
+
+      .card {
+        display: block;
+        text-decoration: none;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        transition:
+          border-color 0.15s,
+          transform 0.15s;
+      }
+
+      .card:hover {
+        border-color: rgba(255, 112, 219, 0.35);
+        transform: translateY(-2px);
+      }
+
+      .card-thumb {
+        height: 140px;
+        background: var(--surface-2);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      /* synthesis demo thumb -- mini version of the output */
+      .thumb-synthesis {
+        width: 100%;
+        height: 100%;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .th-header {
+        height: 14px;
+        background: rgba(255, 112, 219, 0.15);
+        border-radius: 3px;
+        width: 70%;
+      }
+
+      .th-row {
+        display: flex;
+        gap: 6px;
+      }
+
+      .th-badge {
+        height: 10px;
+        width: 48px;
+        border-radius: 2px;
+        background: rgba(243, 95, 54, 0.3);
+      }
+
+      .th-line {
+        height: 10px;
+        border-radius: 2px;
+        background: var(--border);
+        flex: 1;
+      }
+
+      .th-votes {
+        display: flex;
+        gap: 4px;
+        margin-top: 4px;
+      }
+
+      .th-vote-bar {
+        height: 6px;
+        border-radius: 2px;
+      }
+
+      .th-v1 {
+        width: 70%;
+        background: var(--pink);
+        opacity: 0.6;
+      }
+      .th-v2 {
+        width: 20%;
+        background: var(--ocean);
+        opacity: 0.5;
+      }
+      .th-v3 {
+        width: 10%;
+        background: var(--storm);
+        opacity: 0.5;
+      }
+
+      .th-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        margin-top: 4px;
+      }
+
+      .th-chip {
+        height: 28px;
+        border-radius: 4px;
+        background: var(--border);
+      }
+
+      /* model routing thumb */
+      .thumb-routing {
+        width: 100%;
+        height: 100%;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        justify-content: center;
+      }
+
+      .th-model-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .th-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      .th-dot-pink {
+        background: var(--pink);
+      }
+      .th-dot-sky {
+        background: var(--sky);
+      }
+      .th-dot-blue {
+        background: #4285f4;
+      }
+      .th-dot-fog {
+        background: var(--fog);
+      }
+
+      .th-model-bar {
+        height: 8px;
+        border-radius: 2px;
+        background: var(--border);
+        flex: 1;
+      }
+
+      .th-model-label {
+        font-family: "Roboto Mono", monospace;
+        font-size: 9px;
+        color: var(--fog);
+        width: 40px;
+        text-align: right;
+      }
+
+      .card-body {
+        padding: 20px;
+      }
+
+      .card-title {
+        font-family: "DM Serif Display", serif;
+        font-size: 17px;
+        font-weight: 400;
+        color: var(--ivory);
+        margin-bottom: 6px;
+      }
+
+      .card-desc {
+        font-size: 13px;
+        color: var(--fog);
+        line-height: 1.55;
+        margin-bottom: 14px;
+      }
+
+      .card-file {
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        color: var(--storm);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .card-file .arrow {
+        color: var(--pink);
+      }
+
+      /* ---- How it works ---- */
+      .how-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 56px;
+      }
+
+      .how-step {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+      }
+
+      .step-n {
+        font-family: "Roboto Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--orange);
+        margin-bottom: 10px;
+      }
+
+      .step-title {
+        font-family: "DM Serif Display", serif;
+        font-size: 16px;
+        font-weight: 400;
+        color: var(--ivory);
+        margin-bottom: 8px;
+      }
+
+      .step-desc {
+        font-size: 12px;
+        color: var(--fog);
+        line-height: 1.55;
+      }
+
+      /* ---- Install block ---- */
+      .install-block {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 56px;
+      }
+
+      .install-block h2 {
+        margin-bottom: 8px;
+      }
+
+      .install-block p {
+        color: var(--fog);
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+
+      pre {
+        background: var(--obsidian);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 12px;
+        color: var(--ivory);
+        overflow-x: auto;
+        line-height: 1.7;
+        margin-bottom: 16px;
+      }
+
+      .comment {
+        color: var(--fog);
+      }
+      .kw {
+        color: var(--pink);
+      }
+      .str {
+        color: var(--sky);
+      }
+
+      /* ---- Footer ---- */
+      .page-footer {
+        border-top: 1px solid var(--border);
+        padding: 24px 48px;
+        max-width: 960px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .footer-note {
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        color: var(--fog);
+      }
+
+      .footer-note a {
+        color: var(--sky);
+        text-decoration: none;
+      }
+
+      .logo-mark {
+        width: 24px;
+        height: 24px;
+        opacity: 0.4;
+      }
+
+      @media (max-width: 768px) {
+        .masthead {
+          padding: 40px 24px 36px;
+        }
+        .masthead-inner {
+          grid-template-columns: 1fr;
+          gap: 32px;
+        }
+        .content {
+          padding: 40px 24px;
+        }
+        .hero-fig {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="masthead">
+      <div class="masthead-inner">
+        <div>
+          <div class="eyebrow">claude-skills-public &mdash; examples</div>
+          <h1>spawn-agent-team: <em>what it produces</em></h1>
+          <p class="intro">
+            Two to ten specialized agents run in parallel, argue with each
+            other, and collapse into a single synthesis. Each run writes a
+            <strong>SYNTHESIS.md</strong> to disk. The examples below show what
+            that looks like rendered as HTML.
+          </p>
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-n">3</span><span class="stat-l">Templates</span>
+            </div>
+            <div class="stat">
+              <span class="stat-n">10</span
+              ><span class="stat-l">Max agents</span>
+            </div>
+            <div class="stat">
+              <span class="stat-n">40%</span
+              ><span class="stat-l">Gemini floor</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-fig" aria-hidden="true">
+          <div class="pane">
+            <div class="pane-label">.md</div>
+            <div class="pl w90"></div>
+            <div class="pl w75"></div>
+            <div class="pl w60"></div>
+            <div class="pl w82"></div>
+            <div class="pl w50"></div>
+            <div class="pl w90"></div>
+            <div class="pl w75"></div>
+            <div class="pl w60"></div>
+          </div>
+          <div class="pane html">
+            <div class="pane-label">.html</div>
+            <div class="mini-card">
+              <div class="pl w90"></div>
+              <div class="mini-bar-wrap">
+                <div class="mini-bar" style="width: 70%"></div>
+                <div class="mini-bar b2"></div>
+                <div class="mini-bar b3"></div>
+              </div>
+            </div>
+            <div class="pl w60"></div>
+            <div class="pl w75"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="section-label">Examples</div>
+      <h2>Rendered outputs</h2>
+      <div class="cards">
+        <a class="card" href="synthesis-demo.html">
+          <div class="card-thumb">
+            <div class="thumb-synthesis">
+              <div class="th-header"></div>
+              <div class="th-row">
+                <div class="th-badge"></div>
+                <div class="th-line"></div>
+              </div>
+              <div class="th-row">
+                <div
+                  class="th-badge"
+                  style="background: rgba(245, 200, 66, 0.3); width: 40px"
+                ></div>
+                <div class="th-line"></div>
+              </div>
+              <div class="th-votes">
+                <div class="th-vote-bar th-v1"></div>
+                <div class="th-vote-bar th-v2"></div>
+                <div class="th-vote-bar th-v3"></div>
+              </div>
+              <div class="th-grid">
+                <div class="th-chip"></div>
+                <div class="th-chip"></div>
+                <div class="th-chip"></div>
+                <div class="th-chip"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Multi-agent synthesis</div>
+            <div class="card-desc">
+              Template C (4/4+1+1). Ten agents, five minutes. Redis vs in-memory
+              vs CDN, with a real split and a lead call.
+            </div>
+            <div class="card-file">
+              <span>synthesis-demo.html</span><span class="arrow">&#8594;</span>
+            </div>
+          </div>
+        </a>
+
+        <div class="card" style="opacity: 0.45; pointer-events: none">
+          <div class="card-thumb">
+            <div class="thumb-routing">
+              <div class="th-model-row">
+                <div class="th-dot th-dot-pink"></div>
+                <div class="th-model-bar" style="width: 80%"></div>
+                <div class="th-model-label">Sonnet</div>
+              </div>
+              <div class="th-model-row">
+                <div class="th-dot th-dot-sky"></div>
+                <div class="th-model-bar" style="width: 55%"></div>
+                <div class="th-model-label">Haiku</div>
+              </div>
+              <div class="th-model-row">
+                <div class="th-dot th-dot-blue"></div>
+                <div class="th-model-bar" style="width: 40%"></div>
+                <div class="th-model-label">Gemini</div>
+              </div>
+              <div class="th-model-row">
+                <div class="th-dot th-dot-fog"></div>
+                <div class="th-model-bar" style="width: 15%"></div>
+                <div class="th-model-label">Opus</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-title">Model routing decision</div>
+            <div class="card-desc">
+              Coming soon. Template A (3/3/3/1) run against a real architecture
+              question.
+            </div>
+            <div class="card-file"><span>coming-soon</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="section-label">How it works</div>
+      <h2>From prompt to synthesis</h2>
+      <div class="how-grid">
+        <div class="how-step">
+          <div class="step-n">01</div>
+          <div class="step-title">Pre-flight</div>
+          <div class="step-desc">
+            Lead reads all input files. Picks a template (A, B, or C). Announces
+            the team and waits 30s for abort.
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="step-n">02</div>
+          <div class="step-title">Wave 1</div>
+          <div class="step-desc">
+            Finders/researchers and contrarians spawn in parallel. Gemini runs
+            independently from Anthropic models.
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="step-n">03</div>
+          <div class="step-title">Wave 2</div>
+          <div class="step-desc">
+            Arguers read Wave 1 outputs and push back. Aggregator reads
+            everything and produces a ranked draft.
+          </div>
+        </div>
+        <div class="how-step">
+          <div class="step-n">04</div>
+          <div class="step-title">Synthesis</div>
+          <div class="step-desc">
+            Lead reads every agent file in full, writes SYNTHESIS.md: vote
+            tally, splits, judgment calls, recommendation.
+          </div>
+        </div>
+      </div>
+
+      <!-- Install -->
+      <div class="install-block">
+        <div class="section-label">Install</div>
+        <h2>Get started in two minutes</h2>
+        <p>
+          Clone the plugin, set your output directory, then invoke the skill by
+          name.
+        </p>
+        <pre><span class="comment"># Install the plugin</span>
+git clone https://github.com/Damon-Stewart-1/claude-skills-public.git \
+  ~/.claude/plugins/claude-skills-public
+
+<span class="comment"># Set your output directory (add to ~/.zshrc to persist)</span>
+<span class="kw">export</span> <span class="str">CLAUDE_AGENT_RUNS</span>=<span class="str">"${HOME}/claude-agent-runs"</span>
+
+<span class="comment"># Invoke in any Claude Code session</span>
+/spawn-agent-team</pre>
+        <p style="margin-bottom: 0">
+          See
+          <a
+            href="../../skills/spawn-agent-team/SKILL.md"
+            style="color: var(--sky)"
+            >SKILL.md</a
+          >
+          for team templates, model routing rules, and failure recovery.
+        </p>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <div class="footer-note">
+        <a href="https://github.com/Damon-Stewart-1/claude-skills-public"
+          >claude-skills-public</a
+        >
+        &middot; MIT License
+      </div>
+      <svg
+        class="logo-mark"
+        preserveAspectRatio="xMidYMid meet"
+        overflow="visible"
+        viewBox="0 0 95.1219 94.794"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M71.3443 0.000195313H74.6538C85.9545 0.000195313 95.1219 9.13708 95.1219 20.4002V74.394C95.1219 85.6571 85.9545 94.794 74.6538 94.794H71.3443V0.000195313Z"
+          fill="#F0F0F0"
+        />
+        <path
+          d="M59.4555 22.3882V1.32169C59.4555 0.597633 58.8674 0 58.1294 0H23.7776C10.6434 0 0 10.608 0 23.6984V71.0953C0 84.1858 10.6434 94.7938 23.7776 94.7938H58.1294C58.8558 94.7938 59.4555 94.2076 59.4555 93.4721V72.4055C59.4555 71.6815 58.8674 71.0838 58.1294 71.0838H25.1037C24.3772 71.0838 23.7776 70.4977 23.7776 69.7621V60.5448C23.7776 59.8208 24.3657 59.2231 25.1037 59.2231H58.1294C58.8558 59.2231 59.4555 58.637 59.4555 57.9014V36.8349C59.4555 36.1108 58.8674 35.5132 58.1294 35.5132H25.1037C24.3772 35.5132 23.7776 34.927 23.7776 34.1915V24.9742C23.7776 24.2501 24.3657 23.6525 25.1037 23.6525H58.1294C58.8558 23.6525 59.4555 23.0663 59.4555 22.3308V22.3882Z"
+          fill="#F0F0F0"
+        />
+      </svg>
+    </footer>
+  </body>
+</html>

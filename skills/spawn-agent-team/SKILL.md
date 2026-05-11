@@ -66,7 +66,7 @@ See `references/model-routing.md` for the full decision tree. Headline:
 
 See `references/file-writing.md` for the full pattern. Headline:
 
-- **All agent outputs go to** `~/Claude-Stuff/spawn-team-runs/{run-id}/{role}/{agent-N}.md`
+- **All agent outputs go to** `${CLAUDE_AGENT_RUNS:-~/claude-agent-runs}/spawn-team-runs/{run-id}/{role}/{agent-N}.md`
 - **Run-id format:** `{YYYY-MM-DD}-{slug}-{HHMMSS}` (e.g., `2026-05-04-skill-test-143022`)
 - **Setup script:** `bash "${CLAUDE_PLUGIN_ROOT}/skills/spawn-agent-team/scripts/setup-run-dir.sh" <task-slug>` returns the absolute run-dir path on stdout. Capture it before spawning.
 - **NEVER instruct agents to write to** `~/.claude/`. The Write tool is blocked there even with bypassPermissions. Agents will silently fail and return empty output.
