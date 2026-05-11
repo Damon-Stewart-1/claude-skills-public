@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SYNTHESIS: Cache Strategy Decision -- spawn-agent-team demo</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Poppins:wght@400;500;600&family=Roboto+Mono:wght@400;500&display=swap");
+
+      :root {
+        --ivory: #f0f0f0;
+        --obsidian: #131315;
+        --pink: #ff70db;
+        --pink-soft: #ffb7ed;
+        --orange: #f35f36;
+        --ocean: #2079a0;
+        --sky: #afd7e9;
+        --fog: #909da3;
+        --storm: #3f5863;
+        --surface: #1a1a1c;
+        --surface-2: #222226;
+        --border: rgba(240, 240, 240, 0.08);
+        --border-soft: rgba(240, 240, 240, 0.05);
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background: var(--obsidian);
+        color: var(--ivory);
+        font-family: "Poppins", sans-serif;
+        font-size: 15px;
+        line-height: 1.65;
+        min-height: 100vh;
+      }
+
+      /* ---- Header ---- */
+      .page-header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 32px 48px;
+        display: flex;
+        align-items: flex-start;
+        gap: 24px;
+      }
+
+      .logo-mark {
+        width: 32px;
+        height: 32px;
+        flex-shrink: 0;
+        margin-top: 4px;
+      }
+
+      .header-meta {
+        flex: 1;
+      }
+
+      .run-label {
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        color: var(--fog);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .run-label span {
+        color: var(--pink);
+        margin-left: 8px;
+      }
+
+      h1 {
+        font-family: "DM Serif Display", serif;
+        font-size: 28px;
+        line-height: 1.2;
+        color: var(--ivory);
+        font-weight: 400;
+      }
+
+      h1 em {
+        color: var(--pink);
+        font-style: italic;
+      }
+
+      .run-stats {
+        display: flex;
+        gap: 24px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+
+      .stat {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .stat-value {
+        font-family: "Roboto Mono", monospace;
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--ivory);
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: var(--fog);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      /* ---- Layout ---- */
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 48px;
+      }
+
+      /* ---- Section headings ---- */
+      .section {
+        margin-bottom: 48px;
+      }
+
+      .section-label {
+        font-family: "Roboto Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--pink);
+        margin-bottom: 12px;
+      }
+
+      h2 {
+        font-family: "DM Serif Display", serif;
+        font-size: 22px;
+        font-weight: 400;
+        color: var(--ivory);
+        margin-bottom: 20px;
+      }
+
+      /* ---- Verdict banner ---- */
+      .verdict {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 112, 219, 0.12) 0%,
+          rgba(255, 112, 219, 0.04) 100%
+        );
+        border: 1px solid rgba(255, 112, 219, 0.3);
+        border-radius: 12px;
+        padding: 24px 32px;
+        margin-bottom: 48px;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+      }
+
+      .verdict-icon {
+        font-size: 32px;
+        flex-shrink: 0;
+      }
+
+      .verdict-text h3 {
+        font-family: "DM Serif Display", serif;
+        font-size: 20px;
+        font-weight: 400;
+        color: var(--pink);
+        margin-bottom: 4px;
+      }
+
+      .verdict-text p {
+        color: var(--fog);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      /* ---- Agreement / must-fix ---- */
+      .agreement-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .finding {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .finding.critical {
+        border-left: 3px solid var(--orange);
+      }
+      .finding.warning {
+        border-left: 3px solid #f5c842;
+      }
+      .finding.note {
+        border-left: 3px solid var(--ocean);
+      }
+
+      .finding-badge {
+        font-family: "Roboto Mono", monospace;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 8px;
+        border-radius: 4px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      .badge-critical {
+        background: rgba(243, 95, 54, 0.15);
+        color: var(--orange);
+      }
+      .badge-warning {
+        background: rgba(245, 200, 66, 0.12);
+        color: #f5c842;
+      }
+      .badge-note {
+        background: rgba(32, 121, 160, 0.15);
+        color: var(--sky);
+      }
+
+      .finding-body {
+        flex: 1;
+      }
+      .finding-body strong {
+        color: var(--ivory);
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .finding-body p {
+        color: var(--fog);
+        font-size: 13px;
+        margin-top: 4px;
+        line-height: 1.5;
+      }
+
+      /* ---- Vote tally ---- */
+      .vote-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+      }
+
+      .vote-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+      }
+
+      .vote-card-title {
+        font-family: "DM Serif Display", serif;
+        font-size: 16px;
+        font-weight: 400;
+        color: var(--ivory);
+        margin-bottom: 8px;
+      }
+
+      .vote-bar-wrap {
+        margin: 12px 0;
+      }
+
+      .vote-bar-track {
+        height: 6px;
+        background: var(--border);
+        border-radius: 999px;
+        overflow: hidden;
+      }
+
+      .vote-bar-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: var(--pink);
+      }
+
+      .vote-bar-fill.secondary {
+        background: var(--ocean);
+      }
+      .vote-bar-fill.tertiary {
+        background: var(--storm);
+      }
+
+      .vote-meta {
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        color: var(--fog);
+        margin-top: 6px;
+      }
+
+      .vote-meta strong {
+        color: var(--ivory);
+      }
+
+      /* ---- Splits / judgment calls ---- */
+      .split-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+
+      .split-question {
+        font-family: "DM Serif Display", serif;
+        font-size: 18px;
+        font-weight: 400;
+        color: var(--ivory);
+        margin-bottom: 20px;
+      }
+
+      .positions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .position {
+        padding: 14px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+
+      .position.for {
+        background: rgba(255, 112, 219, 0.06);
+        border-color: rgba(255, 112, 219, 0.2);
+      }
+      .position.against {
+        background: rgba(32, 121, 160, 0.06);
+        border-color: rgba(32, 121, 160, 0.2);
+      }
+
+      .position-label {
+        font-family: "Roboto Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--fog);
+        margin-bottom: 6px;
+      }
+
+      .position.for .position-label {
+        color: var(--pink);
+      }
+      .position.against .position-label {
+        color: var(--sky);
+      }
+
+      .position p {
+        font-size: 13px;
+        color: var(--fog);
+        line-height: 1.5;
+      }
+
+      .call-box {
+        background: rgba(243, 95, 54, 0.08);
+        border: 1px solid rgba(243, 95, 54, 0.2);
+        border-radius: 8px;
+        padding: 14px 16px;
+      }
+
+      .call-label {
+        font-family: "Roboto Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--orange);
+        margin-bottom: 4px;
+      }
+
+      .call-box p {
+        font-size: 13px;
+        color: var(--ivory);
+        line-height: 1.5;
+      }
+
+      /* ---- Agent quotes ---- */
+      .agent-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+      }
+
+      .agent-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px 20px;
+      }
+
+      .agent-id {
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        color: var(--fog);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .model-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+      }
+
+      .dot-sonnet {
+        background: var(--pink);
+      }
+      .dot-haiku {
+        background: var(--sky);
+      }
+      .dot-gemini {
+        background: #4285f4;
+      }
+
+      .agent-quote {
+        font-size: 13px;
+        color: var(--fog);
+        font-style: italic;
+        line-height: 1.55;
+        border-left: 2px solid var(--border);
+        padding-left: 12px;
+      }
+
+      /* ---- Footer ---- */
+      .page-footer {
+        border-top: 1px solid var(--border);
+        padding: 24px 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .footer-note {
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        color: var(--fog);
+      }
+
+      .footer-note a {
+        color: var(--sky);
+        text-decoration: none;
+      }
+
+      .partial-note {
+        background: rgba(245, 200, 66, 0.08);
+        border: 1px solid rgba(245, 200, 66, 0.2);
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        color: #f5c842;
+      }
+
+      /* ---- Divider ---- */
+      hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 40px 0;
+      }
+
+      @media (max-width: 768px) {
+        .wrap {
+          padding: 24px;
+        }
+        .page-header {
+          padding: 24px;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .positions {
+          grid-template-columns: 1fr;
+        }
+        .run-stats {
+          gap: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="page-header">
+      <svg
+        class="logo-mark"
+        preserveAspectRatio="xMidYMid meet"
+        overflow="visible"
+        viewBox="0 0 95.1219 94.794"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M71.3443 0.000195313H74.6538C85.9545 0.000195313 95.1219 9.13708 95.1219 20.4002V74.394C95.1219 85.6571 85.9545 94.794 74.6538 94.794H71.3443V0.000195313Z"
+          fill="#F0F0F0"
+          opacity="0.5"
+        />
+        <path
+          d="M59.4555 22.3882V1.32169C59.4555 0.597633 58.8674 0 58.1294 0H23.7776C10.6434 0 0 10.608 0 23.6984V71.0953C0 84.1858 10.6434 94.7938 23.7776 94.7938H58.1294C58.8558 94.7938 59.4555 94.2076 59.4555 93.4721V72.4055C59.4555 71.6815 58.8674 71.0838 58.1294 71.0838H25.1037C24.3772 71.0838 23.7776 70.4977 23.7776 69.7621V60.5448C23.7776 59.8208 24.3657 59.2231 25.1037 59.2231H58.1294C58.8558 59.2231 59.4555 58.637 59.4555 57.9014V36.8349C59.4555 36.1108 58.8674 35.5132 58.1294 35.5132H25.1037C24.3772 35.5132 23.7776 34.927 23.7776 34.1915V24.9742C23.7776 24.2501 24.3657 23.6525 25.1037 23.6525H58.1294C58.8558 23.6525 59.4555 23.0663 59.4555 22.3308V22.3882Z"
+          fill="#F0F0F0"
+          opacity="0.5"
+        />
+      </svg>
+
+      <div class="header-meta">
+        <div class="run-label">
+          spawn-agent-team &mdash; SYNTHESIS.md<span
+            >Template C &middot; 10 agents &middot; 5m 22s</span
+          >
+        </div>
+        <h1>Cache Strategy Decision: <em>Redis vs In-Memory vs CDN</em></h1>
+        <div class="run-stats">
+          <div class="stat">
+            <span class="stat-value">10</span
+            ><span class="stat-label">Agents</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">4</span
+            ><span class="stat-label">Sonnet finders</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">4</span
+            ><span class="stat-label">Haiku arguers</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">1</span
+            ><span class="stat-label">Gemini contrarian</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">1</span
+            ><span class="stat-label">Sonnet aggregator</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <!-- Verdict -->
+      <div class="verdict">
+        <div class="verdict-icon">&#9654;</div>
+        <div class="verdict-text">
+          <h3>
+            Recommendation: Redis with a 5-minute TTL, CDN for static assets
+          </h3>
+          <p>
+            7 of 10 agents converged on Redis. The Haiku arguers surfaced one
+            real dissent: in-memory is sufficient for single-instance workloads
+            under 50 req/s. The Gemini contrarian flagged CDN edge caching as
+            underexplored. Both are judgment calls for the team, documented
+            below.
+          </p>
+        </div>
+      </div>
+
+      <!-- Section 1: Agreement -->
+      <div class="section">
+        <div class="section-label">Section 01 &mdash; Where they agree</div>
+        <h2>Must-fix findings (all or majority agree)</h2>
+        <div class="agreement-grid">
+          <div class="finding critical">
+            <div class="finding-badge badge-critical">Critical</div>
+            <div class="finding-body">
+              <strong>No TTL set on current cache keys</strong>
+              <p>
+                8 of 10 agents flagged this independently. Keys written by the
+                auth service have no expiry. A session invalidation event leaves
+                stale tokens in cache indefinitely. Fix before any cache
+                strategy ships.
+              </p>
+            </div>
+          </div>
+
+          <div class="finding critical">
+            <div class="finding-badge badge-critical">Critical</div>
+            <div class="finding-body">
+              <strong>Cache stampede unguarded on cold start</strong>
+              <p>
+                Finder-2 and Gemini both caught this. On cold start, 100+
+                concurrent requests hit the origin simultaneously. No mutex or
+                probabilistic early expiry in place. Redis or in-memory, same
+                risk either way.
+              </p>
+            </div>
+          </div>
+
+          <div class="finding warning">
+            <div class="finding-badge badge-warning">Warning</div>
+            <div class="finding-body">
+              <strong>Serialization format not pinned</strong>
+              <p>
+                Finder-1 and Finder-3 noted the cache currently uses
+                JSON.stringify. If object shape changes, deserialization
+                silently returns wrong data with no error. Pin a versioned
+                schema or add a version prefix to all keys.
+              </p>
+            </div>
+          </div>
+
+          <div class="finding note">
+            <div class="finding-badge badge-note">Note</div>
+            <div class="finding-body">
+              <strong>Redis client not reused across requests</strong>
+              <p>
+                Finder-4 only. New client instantiated per request in the
+                middleware. Not a correctness bug but will exhaust connection
+                pool under load. Move to a singleton at module scope.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Section 2: Vote tally -->
+      <div class="section">
+        <div class="section-label">Section 02 &mdash; Vote tally</div>
+        <h2>Which strategy did each agent recommend?</h2>
+        <div class="vote-grid">
+          <div class="vote-card">
+            <div class="vote-card-title">Redis (managed)</div>
+            <div class="vote-bar-wrap">
+              <div class="vote-bar-track">
+                <div class="vote-bar-fill" style="width: 70%"></div>
+              </div>
+            </div>
+            <div class="vote-meta">
+              <strong>7 agents</strong> &mdash; Finder-1, Finder-2, Finder-4,
+              Arguer-1, Arguer-3, Arguer-4, Aggregator
+            </div>
+          </div>
+
+          <div class="vote-card">
+            <div class="vote-card-title">In-Memory (single instance)</div>
+            <div class="vote-bar-wrap">
+              <div class="vote-bar-track">
+                <div class="vote-bar-fill secondary" style="width: 20%"></div>
+              </div>
+            </div>
+            <div class="vote-meta">
+              <strong>2 agents</strong> &mdash; Finder-3, Arguer-2
+            </div>
+          </div>
+
+          <div class="vote-card">
+            <div class="vote-card-title">CDN edge caching</div>
+            <div class="vote-bar-wrap">
+              <div class="vote-bar-track">
+                <div class="vote-bar-fill tertiary" style="width: 10%"></div>
+              </div>
+            </div>
+            <div class="vote-meta">
+              <strong>1 agent</strong> &mdash; Gemini contrarian (as primary,
+              Redis as secondary)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Section 3: Splits -->
+      <div class="section">
+        <div class="section-label">Section 03 &mdash; Where they split</div>
+        <h2>Judgment calls for the team</h2>
+
+        <div class="split-card">
+          <div class="split-question">
+            Is the workload single-instance or multi-instance now?
+          </div>
+          <div class="positions">
+            <div class="position for">
+              <div class="position-label">Finder-3 + Arguer-2</div>
+              <p>
+                Current infra is a single Fly.io machine. Redis adds a network
+                hop and a dependency for a problem that doesn't exist yet.
+                In-memory is correct for the actual workload.
+              </p>
+            </div>
+            <div class="position against">
+              <div class="position-label">Finder-1, Finder-2, Finder-4</div>
+              <p>
+                Scaling to two machines without shared cache will produce
+                split-brain session state. The cost of Redis on Fly is $1.94/mo.
+                Pay it before you need it.
+              </p>
+            </div>
+          </div>
+          <div class="call-box">
+            <div class="call-label">Lead call</div>
+            <p>
+              Take Redis. The counter-argument is correct on current state, but
+              the migration cost from in-memory to Redis mid-scale is high and
+              the preventative cost is near zero. Finder-3's position is right
+              for a prototype; this is production.
+            </p>
+          </div>
+        </div>
+
+        <div class="split-card">
+          <div class="split-question">
+            Should CDN edge caching replace Redis for read-heavy routes?
+          </div>
+          <div class="positions">
+            <div class="position for">
+              <div class="position-label">Gemini contrarian</div>
+              <p>
+                The /api/listings route is 90% reads, public, and already behind
+                Cloudflare. A Cache-Control header ships the CDN solution in an
+                afternoon. Redis can't get you sub-10ms from a regional PoP.
+              </p>
+            </div>
+            <div class="position against">
+              <div class="position-label">Finder-2, Arguer-1</div>
+              <p>
+                Listings include personalized sort order based on user session.
+                CDN caching a personalized response is a privacy bug waiting to
+                happen. Vary header complexity is non-trivial.
+              </p>
+            </div>
+          </div>
+          <div class="call-box">
+            <div class="call-label">Lead call</div>
+            <p>
+              Gemini's point is valid for the unauthenticated public feed.
+              Finder-2 is right for the personalized view. Both can coexist: CDN
+              on public routes, Redis on session-aware routes. Gemini surfaced a
+              real optimization the Sonnet line missed.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- Section 4: Agent quotes (proof of read) -->
+      <div class="section">
+        <div class="section-label">Section 04 &mdash; Agent voices</div>
+        <h2>Direct quotes (proof each agent was read)</h2>
+        <div class="agent-grid">
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-sonnet"></span>finder-1 &middot; Sonnet
+            </div>
+            <div class="agent-quote">
+              "The absence of any TTL configuration is the highest-risk finding
+              in this codebase. It is not a cache strategy question; it is a
+              correctness bug that exists regardless of which backend is
+              chosen."
+            </div>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-sonnet"></span>finder-2 &middot; Sonnet
+            </div>
+            <div class="agent-quote">
+              "A cold-start stampede with no mutex will hit the database with N
+              simultaneous identical queries. I observed no probabilistic
+              early-expiry or request coalescing in the middleware layer."
+            </div>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-sonnet"></span>finder-3 &middot; Sonnet
+            </div>
+            <div class="agent-quote">
+              "In-memory is not a compromise. For a single-process workload
+              under fifty requests per second, it is the correct choice. The
+              Redis recommendation assumes a scaling trajectory the current
+              architecture does not support."
+            </div>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-sonnet"></span>finder-4 &middot; Sonnet
+            </div>
+            <div class="agent-quote">
+              "Each request instantiates a new Redis client. This is not a
+              correctness problem today, but under a spike it will exhaust the
+              connection pool before the cache logic is ever reached."
+            </div>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-haiku"></span>arguer-1 &middot; Haiku
+            </div>
+            <div class="agent-quote">
+              "Finder-1's TTL finding is correct and I cannot argue against it.
+              What I can argue: the fix is three lines of code and is
+              independent of strategy choice. Do not let it gate the
+              architecture decision."
+            </div>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-haiku"></span>arguer-2 &middot; Haiku
+            </div>
+            <div class="agent-quote">
+              "Finder-3 is right. The room has convinced itself Redis is
+              necessary because Redis is familiar. The actual load profile does
+              not justify it."
+            </div>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-haiku"></span>arguer-3 &middot; Haiku
+            </div>
+            <div class="agent-quote">
+              "Finder-2's stampede flag is valid but the fix is not a cache
+              strategy: it is a debounce or singleflight wrapper. Either backend
+              benefits from it equally."
+            </div>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-haiku"></span>arguer-4 &middot; Haiku
+            </div>
+            <div class="agent-quote">
+              "The serialization point from Finder-1 and Finder-3 is
+              understated. A shape change with no version prefix will return
+              wrong data silently. That is worse than a cache miss."
+            </div>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-gemini"></span>contrarian &middot;
+              Gemini
+            </div>
+            <div class="agent-quote">
+              "The team is solving the wrong problem for the public feed.
+              Cloudflare is already in front of this service. A Cache-Control:
+              public, max-age=300 header on the unauthenticated listing route
+              costs nothing and delivers sub-10ms globally. Redis is the right
+              answer for session-aware routes. Both are true."
+            </div>
+          </div>
+
+          <div class="agent-card">
+            <div class="agent-id">
+              <span class="model-dot dot-sonnet"></span>aggregator &middot;
+              Sonnet
+            </div>
+            <div class="agent-quote">
+              "Redis wins 7-2 on strategy. TTL and stampede are unanimous
+              findings and must ship first. The Gemini CDN point is the
+              highest-signal dissent: it expands scope but is not wrong."
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="page-footer">
+      <div class="footer-note">
+        Generated by
+        <a href="https://github.com/Damon-Stewart-1/claude-skills-public"
+          >spawn-agent-team</a
+        >
+        &middot; Run dir:
+        <code
+          >claude-agent-runs/spawn-team-runs/2026-05-10-cache-strategy-143022/</code
+        >
+      </div>
+      <div class="partial-note">Demo artifact &mdash; fictional task</div>
+    </footer>
+  </body>
+</html>

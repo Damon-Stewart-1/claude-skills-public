@@ -84,7 +84,7 @@ Invokable with `/skill-name` in any Claude Code session.
 | `dispatch` | Sends a task to a background Claude process. Handles permission tiers, model selection, job IDs, output routing, and multi-LLM targets (Gemini, ChatGPT). |
 | `jobs` | Lists and inspects background dispatch jobs. Shows status, exit codes, and timed-out jobs. |
 | `plan-review` | Dispatches a Gemini or Opus review of a plan file. Outputs a structured critique with a risk rating. |
-| `spawn-agent-team` | Coordinates 2 to 10 parallel agents (Sonnet, Haiku, Gemini) using structured templates (3/3/3/1, 2/2/1, 4/4+1+1). Includes failure recovery, file-write rules, and lead synthesis. |
+| `spawn-agent-team` | Coordinates 2 to 10 parallel agents (Sonnet, Haiku, Gemini) using structured templates (3/3/3/1, 2/2/1, 4/4+1+1). Includes failure recovery, file-write rules, and lead synthesis. [Example output →](examples/spawn-agent-team/index.html) |
 | `preflight` | Sanity checks before a long autonomous session: context headroom, locked files, completion criteria, iteration limit. |
 | `tool-suggest` | Scans installed plugins and skills, recommends which apply to the current task. |
 | `clear-prep` | Generates a self-contained session handover prompt for pasting into a cleared Claude Code instance. Includes decision log, file fingerprints, dispatch job state. |
@@ -93,6 +93,10 @@ Invokable with `/skill-name` in any Claude Code session.
 | `kb-ingest` | Walks through unprocessed knowledge-base raw files and ingests them one at a time. |
 | `leadership-plan-daily` | Morning daily planning interview. Surfaces today's scheduled blocks and walks through time-blocking conversationally. |
 | `leadership-plan-week` | Sunday weekly planning interview. Produces a WEEK_DATA JSON file with threads, day blocks, win conditions, delegations, and pushed-off items. |
+
+#### spawn-agent-team output example
+
+[![spawn-agent-team synthesis output](skills/spawn-agent-team/preview.png)](examples/spawn-agent-team/synthesis-demo.html)
 
 ### References
 

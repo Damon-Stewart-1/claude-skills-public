@@ -4,10 +4,10 @@ Where agent outputs go, why the path matters, and what the setup script does.
 
 ## Output location
 
-All agent outputs land under `~/Claude-Stuff/spawn-team-runs/{run-id}/`. Each role has a subdirectory; each agent writes one file inside that subdirectory.
+All agent outputs land under `${CLAUDE_AGENT_RUNS:-~/claude-agent-runs}/spawn-team-runs/{run-id}/`. Each role has a subdirectory; each agent writes one file inside that subdirectory.
 
 ```
-~/Claude-Stuff/spawn-team-runs/{run-id}/
+~/claude-agent-runs/spawn-team-runs/{run-id}/
 ├── researchers/
 │   ├── researcher-1.md
 │   ├── researcher-2.md
@@ -49,9 +49,9 @@ Example: `2026-05-04-cache-strategy-143022`
 Usage:
 
 ```bash
-RUN_DIR=$(bash ~/.claude/plugins/claude-skills-public/skills/spawn-agent-team/scripts/setup-run-dir.sh cache-strategy)
+RUN_DIR=$(bash "${CLAUDE_PLUGIN_ROOT}/skills/spawn-agent-team/scripts/setup-run-dir.sh" cache-strategy)
 echo "$RUN_DIR"
-# ~/Claude-Stuff/spawn-team-runs/2026-05-04-cache-strategy-143022
+# ~/claude-agent-runs/spawn-team-runs/2026-05-04-cache-strategy-143022
 ```
 
 The lead captures `$RUN_DIR` and substitutes it into every agent's prompt before spawning.
@@ -65,7 +65,7 @@ The Write tool is blocked when writing under `~/.claude/`, even with `--permissi
 1. Get a write error from the tool, OR
 2. Silently produce no file and return as if successful.
 
-Either way, the synthesis fails because the output file is empty or missing. The setup script forces the run-dir to be under `~/Claude-Stuff/` to prevent this category of bug.
+Either way, the synthesis fails because the output file is empty or missing. The setup script forces the run-dir to be outside `~/.claude/` to prevent this category of bug.
 
 **Rule:** Never put `~/.claude/` in an agent's output path. Always use the run-dir from the setup script.
 
@@ -80,11 +80,11 @@ Every agent's prompt must contain:
 Example prompt fragment:
 
 ```
-Write your output to: ~/Claude-Stuff/spawn-team-runs/2026-05-04-cache-strategy-143022/researchers/researcher-1.md
+Write your output to: /Users/yourname/claude-agent-runs/spawn-team-runs/2026-05-04-cache-strategy-143022/researchers/researcher-1.md
 Return when done.
 ```
 
-If the run-dir variable contains `~`, expand it before substituting into the prompt. Agents should never see `~/Claude-Stuff/...`; they should see `~/Claude-Stuff/...`.
+If the run-dir variable contains `~`, expand it before substituting into the prompt. Agents should always receive an absolute path with no `~` in it.
 
 ## Synthesis files
 
@@ -101,11 +101,11 @@ If the aggregator failed, the lead writes only `{RUN_DIR}/SYNTHESIS.md` and adds
 
 Default: keep all run dirs. The user decides when to archive.
 
-**Cold storage (monthly):** per the Claude config policy, run-dirs older than 30 days move from `~/Claude-Stuff/spawn-team-runs/` to `~/Claude-Stuff/spawn-team-runs-archive/`. The archive directory is for cold-but-not-deleted data.
+**Cold storage (monthly):** run-dirs older than 30 days can be moved from `${CLAUDE_AGENT_RUNS:-~/claude-agent-runs}/spawn-team-runs/` to a sibling `spawn-team-runs-archive/` directory. The archive directory is for cold-but-not-deleted data.
 
 **Do not auto-delete.** Run outputs are evidence. They show what the team produced and how the synthesis was reached. Deleting them removes the audit trail.
 
-If disk space becomes an issue, archive instead of delete. The archive is at `~/Claude-Stuff/spawn-team-runs-archive/` and follows the same `{run-id}/` directory structure.
+If disk space becomes an issue, archive instead of delete. The archive follows the same `{run-id}/` directory structure.
 
 ## Disk and quota notes
 
