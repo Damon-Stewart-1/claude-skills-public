@@ -1,9 +1,8 @@
 #!/bin/bash
 # setup-run-dir.sh
 # Usage: setup-run-dir.sh <task-slug>
-# Creates ${CLAUDE_AGENT_RUNS:-~/claude-agent-runs}/spawn-team-runs/{run-id}/ with standard subdirs.
+# Creates ~/Claude-Stuff/spawn-team-runs/{run-id}/ with standard subdirs.
 # Prints the absolute run-dir path on stdout.
-# Set CLAUDE_AGENT_RUNS in your shell profile to change the output location.
 
 set -euo pipefail
 
@@ -26,7 +25,7 @@ date_part=$(date +%Y-%m-%d)
 time_part=$(date +%H%M%S)
 run_id="${date_part}-${slug}-${time_part}"
 
-base_dir="${CLAUDE_AGENT_RUNS:-${HOME}/claude-agent-runs}/spawn-team-runs"
+base_dir="${HOME}/Claude-Stuff/spawn-team-runs"
 run_dir="${base_dir}/${run_id}"
 
 # Create the run-dir and standard role subdirectories.

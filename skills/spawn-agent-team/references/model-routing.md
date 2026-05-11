@@ -76,7 +76,7 @@ Reserves spawn when a primary fails (see `failure-modes.md` for the full table).
 
 **Reserves match the model of the primary they replace.** A failed Sonnet researcher gets a Sonnet reserve. A failed Haiku arguer gets a Haiku reserve. A failed Gemini contrarian gets a Gemini reserve.
 
-**Reserves do not chain.** If a reserve also fails, escalate to the user. Do not spawn a reserve for a reserve. The hard cap is one reserve per primary.
+**Reserves do not chain.** If a reserve also fails, escalate to Damon. Do not spawn a reserve for a reserve. The hard cap is one reserve per primary.
 
 **Reserves use the same prompt as the primary.** Do not modify the brief. The point of the reserve is to retry the same task with a fresh agent context, not to redesign the role.
 
@@ -100,4 +100,4 @@ The binding constraints are wall time and synthesis quality:
 | Contrarian (SEO/content) | Gemini | Domain strength |
 | Aggregator | Sonnet | Reads 5-9 outputs, ranks |
 | Reserve | Match primary | Same task, fresh context |
-| Anything the user explicitly asks | Whatever the user said | Override |
+| Anything Damon explicitly asks | Whatever Damon said | Override |

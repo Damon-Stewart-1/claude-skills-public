@@ -8,6 +8,15 @@ user_invocable: true
 
 Dispatches autonomous agents to execute plans that scored READY in the last triage run.
 
+## Setup
+
+This skill assumes:
+- A triage output directory, default `~/Claude-Stuff/fleet/` (adjust to your setup)
+- A `fleet-execute.sh` script at `~/bin/fleet-execute.sh`
+- A `fleet-triage.sh` script at `~/bin/fleet-triage.sh`
+
+Both scripts must be executable. Adjust paths in this skill to match your local install.
+
 ## What to do
 
 1. **Check triage data.** Read `~/Claude-Stuff/fleet/triage-latest.json` and `~/Claude-Stuff/fleet/last-triage.json`. If no file exists or triage is >12 hours old, tell the user and suggest running `~/bin/fleet-triage.sh` first.
@@ -30,7 +39,6 @@ Dispatches autonomous agents to execute plans that scored READY in the last tria
 5. **Tell the user:**
    - Run output lands at: `~/Claude-Stuff/fleet/runs/{date}-{time}/`
    - Escalations go to: `~/Claude-Stuff/fleet/needs-human.md`
-   - A macOS notification fires when done
 
 6. **After completion:** Read the latest `~/Claude-Stuff/fleet/runs/*/summary.md` and report: how many completed, how many escalated.
 
@@ -38,7 +46,7 @@ Dispatches autonomous agents to execute plans that scored READY in the last tria
 
 If `last-triage.json` is missing or triage was >12 hours ago:
 
-> "No recent triage data (last run: {date} or never). Run `~/bin/fleet-triage.sh` manually or wait for the 8 AM launchd job. Triage takes 2-5 minutes."
+> "No recent triage data (last run: {date} or never). Run `~/bin/fleet-triage.sh` manually. Triage takes 2-5 minutes."
 
 ## Hold file
 
@@ -62,4 +70,3 @@ To see what would be dispatched without running agents:
 - Each agent has a 30-minute timeout
 - Max 2 agents run concurrently
 - Failed or blocked agents escalate to `needs-human.md` automatically
-- The 8 PM launchd job fires a notification only. It does NOT dispatch agents.

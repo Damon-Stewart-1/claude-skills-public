@@ -1,6 +1,6 @@
 # Failure Modes
 
-Every case below has an explicit recovery action and a rule for when to escalate to the user. The principle: report back honestly, never pretend, never silently retry more than once.
+Every case below has an explicit recovery action and a rule for when to escalate to Damon. The principle: report back honestly, never pretend, never silently retry more than once.
 
 ## Quick lookup
 
@@ -8,7 +8,7 @@ Every case below has an explicit recovery action and a rule for when to escalate
 |---|---|---|
 | Single agent crash | Spawn 1 reserve, same model class | No (unless reserve also fails) |
 | Single agent empty output | Treat as crash, spawn 1 reserve | No (unless reserve also fails) |
-| All agents in a role crash | Stop, ask the user | Yes |
+| All agents in a role crash | Stop, ask Damon | Yes |
 | Aggregator crash | Lead synthesizes from raw outputs, mark "lead-only" | Note in synthesis |
 | All Geminis crash (rate limit) | Stop, ask if Sonnet substitution is OK | Yes |
 | File write failure | Detect empty output dir, treat as crash | Yes if pattern repeats |
@@ -26,7 +26,7 @@ Every case below has an explicit recovery action and a rule for when to escalate
 
 **Do not:** Loop. Spawn at most one reserve per primary. If the reserve also fails, escalate.
 
-**Tell the user:** Brief mention at the start of synthesis. "Researcher 2 crashed; reserve completed successfully." Do not bury this.
+**Tell Damon:** Brief mention at the start of synthesis. "Researcher 2 crashed; reserve completed successfully." Do not bury this.
 
 ### Single agent empty output
 
@@ -34,13 +34,13 @@ Every case below has an explicit recovery action and a rule for when to escalate
 
 **Recovery:** Treat as a crash. Spawn one reserve. Before spawning, verify the run-dir is writable (`bash setup-run-dir.sh` should have created it; if not, fix the dir before retrying).
 
-**Tell the user:** Note that the primary returned empty, what the reserve produced, and any guess at why the empty output happened.
+**Tell Damon:** Note that the primary returned empty, what the reserve produced, and any guess at why the empty output happened.
 
 ### All agents in a role crash
 
 **Symptom:** All 3 researchers crash, all 4 arguers crash, etc. This is usually a model-side issue (rate limit, model outage) or a bug in the role's prompt template.
 
-**Recovery:** Stop spawning reserves. Print to the user:
+**Recovery:** Stop spawning reserves. Print to Damon:
 
 ```
 spawn-agent-team: all {N} {role} agents failed.
@@ -66,13 +66,13 @@ Reply with the option number.
 
 **Mark the synthesis "lead-only".** At the top of SYNTHESIS.md add: `Note: aggregator agent crashed. Synthesis produced by lead instance from raw outputs without aggregator pre-pass.`
 
-**Tell the user:** This is not a fatal failure. The lead can do the job. But it is worth noting because aggregator quality typically exceeds lead-only synthesis on 5+ agent runs.
+**Tell Damon:** This is not a fatal failure. The lead can do the job. But it is worth noting because aggregator quality typically exceeds lead-only synthesis on 5+ agent runs.
 
 ### All Geminis crash (rate limit or API issue)
 
 **Symptom:** Every Gemini contrarian returns an error or the gemini subagent reports a Google API failure.
 
-**Recovery:** Stop. Ask the user:
+**Recovery:** Stop. Ask Damon:
 
 ```
 spawn-agent-team: all {N} Gemini contrarians failed (likely Google API rate limit or outage).
@@ -87,7 +87,7 @@ Options:
 Reply with the option number.
 ```
 
-**Why ask:** The Gemini ratio is load-bearing for some tasks (SEO, content). Substituting Sonnet defeats the point. The user's call.
+**Why ask:** The Gemini ratio is load-bearing for some tasks (SEO, content). Substituting Sonnet defeats the point. Damon's call.
 
 ### File write failure (agent tried to write to ~/.claude/)
 
@@ -109,13 +109,13 @@ Reply with the option number.
 
 **Note:** This is rare. Sonnet research agents typically return in 30-90 seconds. Haiku argue agents return in 15-60 seconds. Gemini contrarians return in 60-180 seconds depending on Google API load. A 10+ minute timeout usually indicates a stuck tool call inside the agent.
 
-**Tell the user:** Note the timeout, the role, and any partial output observed.
+**Tell Damon:** Note the timeout, the role, and any partial output observed.
 
 ### Reserve also fails
 
 **Symptom:** A primary failed, a reserve was spawned, the reserve also failed.
 
-**Recovery:** Stop. Do not spawn a second reserve. Escalate to the user:
+**Recovery:** Stop. Do not spawn a second reserve. Escalate to Damon:
 
 ```
 spawn-agent-team: {role} primary and reserve both failed.
@@ -141,13 +141,13 @@ Reply with the option number.
 - List the agents that failed and were not recovered.
 - Note any role where the team is fully missing (e.g., "all 3 contrarians failed; synthesis is research-only").
 
-**Tell the user:** Concise summary in the report. The user can decide whether to re-run the failed role or accept the partial synthesis.
+**Tell Damon:** Concise summary in the report. Damon can decide whether to re-run the failed role or accept the partial synthesis.
 
 ## Anti-patterns to avoid
 
-- **Silent retry.** Spawning a third or fourth attempt without telling the user. Wastes wall time, hides the underlying issue.
+- **Silent retry.** Spawning a third or fourth attempt without telling Damon. Wastes wall time, hides the underlying issue.
 - **Silent model substitution.** Swapping Haiku for Sonnet because Haiku failed, without asking. Defeats the model routing rule.
 - **Pretending an empty output is valid.** If an agent returns nothing, the run has lost data. Treat it as a failure, not as "the agent had nothing to add."
 - **Synthesizing without reading.** If an agent crashed, do not include it in the vote tally as if it had returned.
 - **Cascading reserves.** Reserve fails, spawn another reserve, that one fails, spawn another. Hard cap at 1 reserve per primary.
-- **Hiding failures in the synthesis.** If 2 of 4 finders failed, say so at the top of SYNTHESIS.md. The user needs to know the synthesis is partial.
+- **Hiding failures in the synthesis.** If 2 of 4 finders failed, say so at the top of SYNTHESIS.md. Damon needs to know the synthesis is partial.

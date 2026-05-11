@@ -16,7 +16,7 @@ If the conversation has fewer than ~3 substantive turns AND no files were mentio
 
 ## Step 1: Read MEMORY.md
 
-Read `~/.claude/projects/-Users-damon/memory/MEMORY.md`. Store its contents for the delta check in Step 6. If unreadable: skip the delta check and add a high-priority entry to `## Warnings`.
+Read `~/.claude/projects/$(basename $HOME)/memory/MEMORY.md` (adjust path to match your setup). Store its contents for the delta check in Step 6. If unreadable: skip the delta check and add a high-priority entry to `## Warnings`.
 
 ## Step 2: Session Analysis
 
@@ -49,7 +49,7 @@ Scan this session for gaps in the plugin system. Look for three things only:
 2. A workflow that repeated enough to warrant a new skill or an addition to an existing one
 3. Something learned about a client that isn't in their agent `.md` file
 
-For each gap found, propose a specific diff: which file in `~/ei-claude-plugin/` (hooks/, skills/, agents/), what to add or change, and why. If nothing qualifies, say "No plugin gaps found." Do not propose CLAUDE.md edits or memory file writes here -- that's Step 6.
+For each gap found, propose a specific diff: which plugin file (hooks/, skills/, agents/), what to add or change, and why. If nothing qualifies, say "No plugin gaps found." Do not propose CLAUDE.md edits or memory file writes here -- that's Step 6.
 
 ## Step 7: Sanitization Pass
 
@@ -58,3 +58,17 @@ Read `references/section-rules.md` for the complete list of secret patterns to s
 ## Step 8: Assemble Output
 
 Read `references/handover-template.md` for the exact output structure. Do not ask for approval. Output a single fenced code block. Read `references/section-rules.md` for which sections are required vs. optional.
+
+## Step 9: Copy to Clipboard
+
+After outputting the fenced handover block, immediately copy its contents (the text inside the fences, not the fences themselves) to the macOS clipboard:
+
+```bash
+cat <<'CLEAR_PREP_EOF' | pbcopy
+<the full handover content here, exactly as it appeared in the fenced block>
+CLEAR_PREP_EOF
+```
+
+Use a heredoc with a unique sentinel (`CLEAR_PREP_EOF`) so embedded backticks, dollar signs, and quotes pass through untouched. Do not use `echo` or `printf` (they mangle special chars). After running, output one final line confirming: `Handover copied to clipboard. Paste with Cmd+V into the cleared instance.`
+
+If `pbcopy` fails (e.g., no display, headless), say so and skip silently rather than blocking.
