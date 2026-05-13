@@ -24,13 +24,13 @@ This skill is the only one that does live multi-agent work with the lead activel
 Do these in order. Skipping a step will produce shallow synthesis or a team that solves the wrong problem.
 
 1. **Read every input file.** If the task brief references files, plans, or paths, Read them in full before spawning. Do not delegate understanding to agents. The lead synthesizes; the lead must know the source material.
-2. **Confirm the task is concrete.** A team of 8 agents will produce 8 generic answers if the brief is vague. State the question, the input files, and what "done" looks like. If unclear, ask the user a numbered question.
+2. **Confirm the task is concrete.** A team of 8 agents will produce 8 generic answers if the brief is vague. State the question, the input files, and what "done" looks like. If unclear, ask Damon a numbered question.
 3. **Pick a team template.** See `references/team-templates.md` for the three canonical patterns. If the task does not match a template, design a custom team but document the role mix.
 4. **Announce-and-wait.** Print the plan in this format, then wait ~30 seconds before spawning:
 
    `spawn-agent-team: spawning <N> agents (<role mix>) against <task>. Output dir: <run-dir>. 30s to abort. Reply 'stop' to cancel, 'go' to skip the wait.`
 
-   Then STOP. Do not spawn until either the user replies "go" or 30 real seconds have elapsed with no reply. Silence before 30 seconds is not approval. This is the only abort gate. Use it. Catching the wrong template or model mix here costs nothing; catching it after 6 agents have run wastes 5 minutes of wall time.
+   Then STOP. Do not spawn until either Damon replies "go" or 30 real seconds have elapsed with no reply. Silence before 30 seconds is not approval. This is the only abort gate. Use it. Catching the wrong template or model mix here costs nothing; catching it after 6 agents have run wastes 5 minutes of wall time.
 
 ## Team composition
 
@@ -49,7 +49,7 @@ Do these in order. Skipping a step will produce shallow synthesis or a team that
 
 If an example or template you pick puts you below the floor, fix the team mix before spawning. Do not ship the example unmodified.
 
-**The lead picks the composition.** If the team mix is genuinely uncertain (e.g., "is this an SEO task or a research task?"), surface a numbered question to the user before spawning.
+**The lead picks the composition.** If the team mix is genuinely uncertain (e.g., "is this an SEO task or a research task?"), surface a numbered question to Damon before spawning.
 
 ## Model routing
 
@@ -84,17 +84,34 @@ One Agent tool block, multiple parallel calls. Each agent gets:
 - Instructions to write the output and return when done
 
 **Sequencing.** Two waves:
-- Wave 1 (parallel): all primaries (researchers, finders) AND contrarians. Contrarians work independently from primaries by design, so they spawn together.
-- Wave 2 (after Wave 1 returns): aggregator only. The aggregator needs all Wave 1 outputs as input.
+- Wave 1 (parallel): all primaries (researchers, finders) AND contrarians. Contrarians work independently from primaries by design, so they spawn together. Spawn via the Agent tool. Each agent writes to the run-dir; their return summaries to the lead are short (acknowledgment, not full findings).
+- Wave 2 (after Wave 1 returns): aggregator. **Dispatch the aggregator by default** (do not use the inline Agent tool). The aggregator reads 5-9 files and produces the longest single output in the run, typically 10-20KB. Returning that inline costs the lead's context for no synthesis benefit, since the lead Reads `{RUN_DIR}/aggregator/SYNTHESIS-draft.md` from disk anyway in the Synthesis step.
 
-Counter-arguer roles (Template A) go in Wave 2 alongside the aggregator if they take a primary's output as input, or in Wave 1 if they argue the question generally.
+**Aggregator dispatch pattern:**
+
+```bash
+JOB_ID="job-$(date +%Y%m%d-%H%M%S)-aggregator"
+PROMPT_FILE="/tmp/${JOB_ID}-prompt.txt"
+# Write the aggregator prompt skeleton (see references/team-templates.md) with {RUN_DIR} substituted
+cat > "$PROMPT_FILE" << 'PROMPT'
+<aggregator prompt, see references/team-templates.md>
+PROMPT
+(bash "${CLAUDE_PLUGIN_ROOT}/../dispatch/scripts/dispatch.sh" \
+  "$JOB_ID" "$PROMPT_FILE" "Read,Glob,Grep,Write" 1800 sonnet) &
+```
+
+The lead then waits for the job to complete (`status: complete` in `~/.claude/jobs/{JOB_ID}.meta`), Reads `{RUN_DIR}/aggregator/SYNTHESIS-draft.md` directly (the dispatched aggregator wrote it there per its prompt), acks the job-id, then proceeds to Synthesis.
+
+Counter-arguer roles (Template A) go in Wave 2 alongside the dispatched aggregator if they take a primary's output as input, or in Wave 1 if they argue the question generally. Counter-arguers stay on inline Agent calls; their outputs are small and the lead needs to know which arguer finished for the synthesis split.
+
+**Opt-in `--background` mode (advanced):** When extreme context pressure is the binding constraint, every primary and contrarian can also be dispatched instead of spawned inline. This trades real-time visibility for context preservation. The lead loses the streamed "watch them work" framing and instead waits on `/jobs` for completion. Use only when explicitly asked; not the default. The lead still must Read every output file before synthesizing (the laziness guard does not relax).
 
 ## Failure modes
 
 See `references/failure-modes.md` for the full table. Headline:
 
 - **Single agent crash.** Spawn one reserve from the same model class. Hard cap at one reserve per primary. Do not loop.
-- **All agents in a role crash.** Escalate to the user: retry, swap model class, or proceed without that role.
+- **All agents in a role crash.** Escalate to Damon: retry, swap model class, or proceed without that role.
 - **Empty output.** Treat as crash. The run-dir script prevents most empty-output bugs by enforcing the directory pattern, but agents can still produce nothing.
 - **Aggregator fails.** Lead synthesizes from raw outputs and marks the synthesis "lead-only".
 - **Reserve also fails.** Escalate, do not loop.
@@ -106,20 +123,20 @@ Report failures honestly. Never retry silently. Never claim a synthesis is compl
 
 After all agents return, before writing the synthesis:
 
-1. **Surface the split first.** Where do agents agree (high confidence)? Where do they disagree (judgment call)? The split is load-bearing. The user needs to see disagreement, not consensus theater. If all agents agree completely, note that explicitly and explain why; do not present consensus as automatic proof of correctness.
+1. **Surface the split first.** Where do agents agree (high confidence)? Where do they disagree (judgment call)? The split is load-bearing. Damon needs to see disagreement, not consensus theater. If all agents agree completely, note that explicitly and explain why; do not present consensus as automatic proof of correctness.
 2. **Read every agent output file in full.** Do not skim. Do not synthesize from notification messages or stdout returns. Use the Read tool on each `agent-N.md` file, then quote at least one direct sentence from each agent in SYNTHESIS.md. The quote is proof-of-read; without it, the synthesis is invalid.
 3. **Tally votes** if the task involves ranking. Note which agents agreed and which dissented.
 4. **Write SYNTHESIS.md** to the run-dir. Structure: split summary, vote tally, ranked findings with confidence levels, dissenting views with quotes, recommendation.
-5. **Report to the user** with the run-dir path and a 3-section summary: agreed findings, disagreements, recommendation.
+5. **Report to Damon** with the run-dir path and a 3-section summary: agreed findings, disagreements, recommendation.
 
 For teams of 5+ agents, spawn an aggregator agent for a first-pass synthesis, then the lead reads the aggregator's output and the raw agent outputs together. The aggregator is a force multiplier, not a replacement for lead reading.
 
 ## What this skill does NOT do
 
-- Does NOT auto-write to user-facing files outside the run-dir. Synthesis is a recommendation; the user (or a downstream skill) applies it.
+- Does NOT auto-write to user-facing files outside the run-dir. Synthesis is a recommendation; Damon (or a downstream skill) applies it.
 - Does NOT spawn Opus without explicit ask or a numbered question first.
 - Does NOT silently retry failed agents more than once.
-- Does NOT use tmux mode. The skill assumes a single Claude Code session, not a multi-pane tmux workflow.
+- Does NOT use tmux mode. Damon does not use tmux.
 - Does NOT activate on vague parallelism requests. If the intent is ambiguous (e.g., user says "could we parallelize this?" without specifying scope), ask a numbered question before spawning rather than guessing a team mix.
 - Does NOT replace `captain-opus` for review work or `fleet-execute` for autonomous dispatch. Wrong tool for those jobs.
 
@@ -127,15 +144,15 @@ For teams of 5+ agents, spawn an aggregator agent for a first-pass synthesis, th
 
 ### Example: research with 3 hypotheses (Template A)
 
-User: "Spawn an agent team to figure out which of 3 cache strategies fits the issue tracker."
+Damon: "Spawn an agent team to figure out which of 3 cache strategies fits the issue tracker."
 
-Lead: Reads the issue tracker code and the 3 strategy proposals. Picks Template A (3/3/3/1). Announces, waits, spawns 3 Sonnet researchers (one per strategy), 3 Haiku counter-arguers (each takes one researcher's output and argues the strategy is wrong), 3 contrarians (2 Gemini, 1 Sonnet) producing independent picks, and 1 Sonnet aggregator. Total 10 agents, Gemini ratio 2/10, ~5 min wall time. Synthesis ranks the strategies with confidence levels and surfaces the 4-agent disagreement on TTL semantics as a judgment call for the user.
+Lead: Reads the issue tracker code and the 3 strategy proposals. Picks Template A (3/3/3/1). Announces, waits, spawns 3 Sonnet researchers (one per strategy), 3 Haiku counter-arguers (each takes one researcher's output and argues the strategy is wrong), 3 contrarians (2 Gemini, 1 Sonnet) producing independent picks, and 1 Sonnet aggregator. Total 10 agents, Gemini ratio 2/10, ~5 min wall time. Synthesis ranks the strategies with confidence levels and surfaces the 4-agent disagreement on TTL semantics as a judgment call for Damon.
 
 ### Example: SEO content audit (Template B with Gemini-heavy)
 
-User: "Spawn a small team to audit the landing page for SEO."
+Damon: "Spawn a small team to audit the landing page for SEO."
 
-Lead: Reads the landing page HTML. Picks Template B (2/2/1) but raises Gemini ratio to 50%: 2 Sonnet researchers (one for keyword analysis, one for technical SEO), 2 Gemini contrarians (independent SEO read), and 1 Sonnet aggregator. Total 5 agents, ~2-3 min. Synthesis hands the user the ranked fix list and flags the one disagreement between the Sonnet keyword agent and Gemini contrarian.
+Lead: Reads the landing page HTML. Picks Template B (2/2/1) but raises Gemini ratio to 50%: 2 Sonnet researchers (one for keyword analysis, one for technical SEO), 2 Gemini contrarians (independent SEO read), and 1 Sonnet aggregator. Total 5 agents, ~2-3 min. Synthesis hands Damon the ranked fix list and flags the one disagreement between the Sonnet keyword agent and Gemini contrarian.
 
 ## Additional resources
 

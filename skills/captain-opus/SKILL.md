@@ -75,7 +75,7 @@ User-reply handling during the wait:
 
 This is the only gate. There is no second confirmation before spawn.
 
-### Step 5: Spawn reviewers in parallel
+### Step 5: Spawn reviewers in parallel (via dispatch by default)
 
 Read the appropriate reviewer prompt template:
 
@@ -83,15 +83,29 @@ Read the appropriate reviewer prompt template:
 - code mode -> `references/reviewer-prompt-code.md`
 - content mode -> `references/reviewer-prompt-content.md`
 
-Spawn both reviewers in a single Agent tool block (parallel, not sequential). Pass each reviewer the prompt template, the absolute target file path, and the detected mode. For `code-reviewer` and `gemini`, use the subagent types directly. For ChatGPT, dispatch via the `askchatgpt` skill and capture the job-id for the ack step.
+**Default path: dispatch both reviewers.** Each reviewer's output (typically 15-30KB of structured findings) would otherwise return inline and consume 30-60KB of context. Dispatching them puts the output on disk; the lead Reads only what it needs to synthesize.
+
+Spawn pattern:
+
+1. Generate two `JOB_ID` values, one per reviewer (e.g., `job-YYYYMMDD-HHMMSS-r1`, `...-r2`).
+2. Write each reviewer's full prompt (template + `<TARGET_PATH>` substituted + mode + reviewer-role note) to a temp prompt file.
+3. Launch both via `dispatch.sh` in a single message with two parallel Bash calls:
+   - `code-reviewer` and equivalent rule-based reviewers run as Claude dispatch jobs with `--model sonnet` (faster, adequate for review).
+   - `gemini` reviewer dispatches with `Read,Glob,Grep,Write,Bash` permission tier and routes through `~/.claude/plugins/gemini-subagent/scripts/gemini-api.sh` per `references/multi-llm-dispatch.md`.
+   - `chatgpt` reviewer dispatches via `~/.claude/plugins/chatgpt-subagent/scripts/chatgpt-api.sh` (unchanged from prior behavior).
+4. Each dispatched reviewer writes its review to `/tmp/{JOB_ID}.md`, which dispatch.sh moves to `~/.claude/jobs/{JOB_ID}.md` on completion.
+
+**When to use inline Agent calls instead:** If `/captain-opus --inline` is passed, or if dispatch is unavailable (e.g., `gtimeout` missing and the user has not run `brew install coreutils`), fall back to the inline Agent tool block. Inline returns the full findings as a tool result; expect ~30-60K tokens of context cost.
 
 ### Step 6: Wait for both, then read
 
-Wait for both reviewers to return. Read both outputs in full before doing anything else. Do not start synthesizing while one is still running, do not write anything to disk yet.
+Wait for both reviewers to return. Use `/jobs` or check `~/.claude/jobs/{JOB_ID}.meta` for status. When both show `status: complete`, Read both output files in full before doing anything else. Do not start synthesizing while one is still running, do not write anything to disk yet.
+
+For the dispatch path, the lead's Read calls of `~/.claude/jobs/{JOB_ID}.md` are how the findings enter context. This is the only cost-paying step; the dispatched reviewer's own tool use never returns inline. The lead can also Read with `offset`/`limit` to inspect just the verdict + must-fix list first, then deepen into specific sections only when the synthesis demands it.
 
 ### Step 7: Acknowledge
 
-For each reviewer that produced an ack-eligible job-id (dispatch jobs do; inline Agent calls return findings directly and bypass the hook), `touch ~/.claude/reviews-read/<job-id>.ack` to satisfy the block-writes-until-review-read hook. Inline Agent results bypass the hook but still need explicit acknowledgment in the synthesis text per CLAUDE.md.
+Each dispatch job produces an ack-eligible job-id. `touch ~/.claude/reviews-read/<job-id>.ack` for both before any Write/Edit, to satisfy the block-writes-until-review-read hook. For the `--inline` fallback path, inline Agent results bypass the hook but still need explicit acknowledgment in the synthesis text per CLAUDE.md.
 
 ### Step 8: Synthesize
 
@@ -147,6 +161,7 @@ Do NOT auto-write to the target file. Synthesis is the input to a human or next-
 
 - **Both reviewers fail.** Print: `captain-opus: both reviewers failed. <reviewer-1>: <error>. <reviewer-2>: <error>. Retry, switch reviewers, or proceed without review?` Do not synthesize on no input. Do not silently retry.
 - **One reviewer fails.** Print the successful one's findings, name the failed reviewer, ask whether to retry the failed one, swap in a different reviewer, or accept single-reviewer synthesis. Default recommendation: retry once, then accept single-reviewer if still failing.
+- **Dispatch job times out or shows `status: failed`.** Read `~/.claude/jobs/{JOB_ID}.log` for the last 20 lines (the JSON output from Claude is there, including permission_denials). Common causes: gtimeout fired before the reviewer finished (raise timeout, default 1800s), permission tier missing Write (LLM dispatches need unrestricted Bash). Treat as a single-reviewer-failure; do not retry blindly.
 - **Mode mismatch suspected.** If the reviewer output strongly suggests the wrong mode was picked (e.g., code-mode review of a plan file complains about every line being prose; content-mode review of code complains the headings are missing), surface it in the synthesis: `auto-detect picked <X>-mode but reviewer output suggests <Y>-mode. Re-run with --mode <Y>?`
 - **File too large.** If the target exceeds ~10000 lines or 200KB, print a warning and ask the user whether to proceed (reviewer cost will be high) or to scope down to a subset.
 - **Reviewer returns empty.** If a reviewer returns empty or null output (rate limit silently swallowed, agent timeout), treat it as a failure per the one-reviewer-fails path. Do not pretend it ran.
