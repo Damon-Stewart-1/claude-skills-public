@@ -1,6 +1,8 @@
 # Plan File Template
 
-Save to `~/.claude/plans/<generated-name>.md` using this structure:
+Save to `~/.claude/plans/<contextual-name>.md` using this structure.
+
+**File naming convention:** Plan filenames must be contextual, not whimsical. Use the pattern `<project-or-outcome>.md`. Examples: `user-dashboard-redesign.md`, `api-migration-phase2.md`, `auth-rewrite-phase3.md`, `search-index-backfill.md`. Never use random adjective-noun combinations like `fluffy-munching-blanket.md`.
 
 ```markdown
 # Plan: <descriptive title>
